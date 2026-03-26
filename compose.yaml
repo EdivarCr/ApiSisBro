@@ -1,0 +1,70 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: apisisbro-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://pimenta:pimenta123@db:5432/pimenta_drbroa
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_KEY=${SUPABASE_KEY:-}
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./migrations:/app/migrations
+      - ./alembic.ini:/app/alembic.ini:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - apisisbro-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: apisisbro-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: pimenta
+      POSTGRES_PASSWORD: pimenta123
+      POSTGRES_DB: pimenta_drbroa
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pimenta -d pimenta_drbroa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - apisisbro-network
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: apisisbro-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DESIGN: nette
+    depends_on:
+      - db
+    networks:
+      - apisisbro-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: apisisbro-postgres-data
+
+networks:
+  apisisbro-network:
+    name: apisisbro-network
+    driver: bridge

@@ -1,0 +1,96 @@
+[project]
+name = "apisisbro"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "EdivarCr",email = "edivarfilho16@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12, <4.0"
+dependencies = [
+     # Framework
+    "fastapi[standard]>=0.115.0",
+    
+    # ORM e Banco
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    
+    # Validação
+    "pydantic-settings>=2.6.0",
+    
+    # Autenticação
+    "pwdlib[argon2]>=0.3.0",
+    "pyjwt>=2.10.0",
+    
+    # Storage (Supabase)
+    "supabase>=2.10.0",
+    
+    # Utilitários
+    "python-multipart>=0.0.12",
+    "httpx>=0.28.0",
+    "aiofiles>=24.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+    "taskipy>=1.14.0",
+    "factory-boy>=3.3.0",
+    "faker>=33.0.0",
+    "testcontainers[postgres]>=4.8.0",
+]
+
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ['migrations']
+
+[tool.ruff.lint]
+preview = true
+select = [
+    "I", "F", "E", "W", "PL", "PT", "FAST", "B", "UP"
+]
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+addopts = "-p no:warnings"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = 'function'
+
+[tool.taskipy.tasks]
+run = "fastapi dev src/apisisbro/app.py --host 0.0.0.0 --port 8000"
+pre_test = "task lint"
+test = "pytest -s -x --cov=apisisbro -vv"
+post_test = "coverage html"
+lint = "ruff check . && ruff check . --diff"
+format = "ruff check . --fix && ruff format ."
+migrate = "alembic upgrade head"
+makemigrations = "alembic revision --autogenerate -m"
+
+[tool.poetry]
+packages = [{include = "apisisbro", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "taskipy (>=1.14.1,<2.0.0)"
+]
+pytest = [
+    "pytest-cov (>=7.1.0,<8.0.0)",
+    "pytest-asyncio (>=1.3.0,<2.0.0)",
+    "ruff (>=0.15.7,<0.16.0)",
+    "factory-boy (>=3.3.3,<4.0.0)",
+    "faker (>=40.11.1,<41.0.0)",
+    "testcontainers[postgres] (>=4.14.2,<5.0.0)"
+]
