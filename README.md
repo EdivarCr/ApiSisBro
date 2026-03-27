@@ -1,65 +1,107 @@
-🚀 Guia de Desenvolvimento - ApiSisBro
-Este documento orienta a configuração do ambiente para que todos os membros do grupo trabalhem com as mesmas versões de bibliotecas e ferramentas.
+# 🚀 ApiSisBro
 
-1. Pré-requisitos
-Antes de começar, instale:
+API desenvolvida para a disciplina de **Projeto Integrado de Software II**.  
+Utiliza **FastAPI**, **SQLAlchemy** e **Poetry**.
 
-Python 3.12+
+---
 
-Poetry (Gerenciador de pacotes)
+## 📖 Sobre o Projeto
 
-Docker & Docker Compose
+API RESTful com autenticação JWT, integração com Supabase Storage e boas práticas de desenvolvimento.
 
-2. Configuração Inicial
-Clonar e Instalar
-Bash
+### Funcionalidades
+
+- ✅ CRUD completo de usuários
+- ✅ Autenticação JWT
+- ✅ Upload de arquivos (Supabase Storage)
+- ✅ Documentação interativa (Swagger/ReDoc)
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+| Categoria | Tecnologias |
+|-----------|-------------|
+| **Backend** | Python 3.12, FastAPI, Uvicorn |
+| **Database** | PostgreSQL, SQLAlchemy, Alembic |
+| **Autenticação** | JWT (python-jose), bcrypt |
+| **Storage** | Supabase Storage |
+| **DevOps** | Docker, Docker Compose, Poetry |
+
+---
+
+## 📋 Pré-requisitos
+
+- Python 3.12+
+- Poetry
+- (Instale o poetry com pip install poetry)
+- Docker e Docker Compose
+- Git
+
+---
+
+## 📦 Configuração do Ambiente
+
+```bash
+# Clonar repositório
 git clone https://github.com/EdivarCr/ApiSisBro.git
 cd ApiSisBro
+
+# Instalar dependências
 poetry install
-O comando poetry install instalará todas as dependências do projeto (FastAPI, SQLAlchemy, etc.) e as ferramentas de desenvolvimento (Pytest, Ruff, Taskipy) em um ambiente virtual isolado.
 
-Variáveis de Ambiente
-Crie o arquivo .env para que o sistema reconheça as configurações do banco de dados e do Supabase:
-
-Bash
+# Configurar variáveis de ambiente
 cp env.example .env
-Edite o .env com as chaves do Supabase se necessário.
+```
 
-3. Executando o Projeto
-Passo 1: Subir o Banco de Dados (Docker)
-Para rodar o PostgreSQL e o Adminer (interface para o banco), utilize:
+Edite o `.env`:
 
-Bash
+```env
+DATABASE_URL=postgresql://pimenta:pimenta123@localhost:5433/apisisbro
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_KEY=sua-chave-secreta
+SECRET_KEY=sua-chave-jwt
+```
+
+---
+
+## 🐳 Execução com Docker
+
+```bash
+# Subir banco e adminer
 docker compose up -d db adminer
-O banco estará disponível em localhost:5433.
+```
 
-O Adminer estará em localhost:8080.
+| Serviço | Porta | Credenciais |
+|---------|-------|-------------|
+| PostgreSQL | 5433 | `pimenta` / `pimenta123` |
+| Adminer | 8080 | http://localhost:8080 |
 
-Passo 2: Rodar a API
-Utilize o comando pré-configurado via taskipy:
+---
 
-Bash
+## 🏃 Servidor de Desenvolvimento
+
+```bash
+# Aplicar migrações
+poetry run task migrate
+
+# Iniciar servidor
 poetry run task run
-Acesse a documentação interativa em: http://localhost:8000/docs.
+```
 
-4. Comandos de Desenvolvimento (Taskipy)
-Para facilitar o dia a dia, use os seguintes comandos através do poetry run task:
+- **API:** http://localhost:8000
+- **Swagger:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
 
-task run: Inicia o servidor FastAPI em modo de desenvolvimento.
+---
 
-task migrate: Aplica todas as migrações pendentes ao banco de dados.
+## 📜 Comandos Úteis
 
-task makemigrations: Cria uma nova revisão do banco (Alembic) após você alterar os modelos.
-
-task test: Executa a suíte de testes com relatório de cobertura.
-
-task lint: Verifica erros de estilo no código usando o Ruff.
-
-task format: Corrige automaticamente a formatação do código.
-
-💡 Boas Práticas para o Grupo
-Dependências: Se precisar instalar uma biblioteca nova, use poetry add nome-da-lib. Não use pip.
-
-Ambiente: O projeto utiliza Python 3.12. Garanta que seu Poetry esteja usando esta versão.
-
-Migrações: Sempre que alterar um arquivo em models/, lembre-se de rodar o task makemigrations e commitar o arquivo gerado na pasta versions/.
+| Comando | Descrição |
+|---------|-----------|
+| `poetry run task run` | Inicia a API |
+| `poetry run task migrate` | Aplica migrações |
+| `poetry run task makemigrations` | Cria nova migração |
+| `poetry run task test` | Executa testes |
+| `poetry run task lint` | Verifica código |
+| `poetry run task format` | Formata código |
