@@ -1,125 +1,65 @@
-# ApiSisBro
+🚀 Guia de Desenvolvimento - ApiSisBro
+Este documento orienta a configuração do ambiente para que todos os membros do grupo trabalhem com as mesmas versões de bibliotecas e ferramentas.
 
-API para a cadeira de Projeto Integrado de Software 2.
+1. Pré-requisitos
+Antes de começar, instale:
 
----
+Python 3.12+
 
-## 🚀 Como rodar a aplicação (passo a passo)
+Poetry (Gerenciador de pacotes)
 
-### 1. Pré-requisitos
+Docker & Docker Compose
 
-Certifique-se de ter instalado:
-
-- [Git](https://git-scm.com/)
-- [Python 3.10+](https://www.python.org/downloads/)  
-- [pip](https://pip.pypa.io/en/stable/)
-
-### 2. Clone o repositório
-
-Abra o terminal e execute:
-
-```bash
+2. Configuração Inicial
+Clonar e Instalar
+Bash
 git clone https://github.com/EdivarCr/ApiSisBro.git
 cd ApiSisBro
-```
+poetry install
+O comando poetry install instalará todas as dependências do projeto (FastAPI, SQLAlchemy, etc.) e as ferramentas de desenvolvimento (Pytest, Ruff, Taskipy) em um ambiente virtual isolado.
 
-### 3. Crie e ative o ambiente virtual
+Variáveis de Ambiente
+Crie o arquivo .env para que o sistema reconheça as configurações do banco de dados e do Supabase:
 
-No terminal digite:
+Bash
+cp env.example .env
+Edite o .env com as chaves do Supabase se necessário.
 
-```bash
-python -m venv venv
-```
+3. Executando o Projeto
+Passo 1: Subir o Banco de Dados (Docker)
+Para rodar o PostgreSQL e o Adminer (interface para o banco), utilize:
 
-Ative o ambiente virtual:
+Bash
+docker compose up -d db adminer
+O banco estará disponível em localhost:5433.
 
-- **Windows**
-  ```bash
-  venv\Scripts\activate
-  ```
-- **Linux/Mac**
-  ```bash
-  source venv/bin/activate
-  ```
+O Adminer estará em localhost:8080.
 
-### 4. Instale as dependências
+Passo 2: Rodar a API
+Utilize o comando pré-configurado via taskipy:
 
-```bash
-pip install -r requirements.txt
-```
+Bash
+poetry run task run
+Acesse a documentação interativa em: http://localhost:8000/docs.
 
-### 5. Configure variáveis de ambiente
+4. Comandos de Desenvolvimento (Taskipy)
+Para facilitar o dia a dia, use os seguintes comandos através do poetry run task:
 
-Se existir um arquivo `.env.example`, copie para `.env` e ajuste as variáveis conforme necessário:
+task run: Inicia o servidor FastAPI em modo de desenvolvimento.
 
-```bash
-cp .env.example .env
-# edite .env com suas configurações, se necessário
-```
+task migrate: Aplica todas as migrações pendentes ao banco de dados.
 
-> Caso não tenha `.env.example`, pergunte ao responsável do grupo as variáveis necessárias.
+task makemigrations: Cria uma nova revisão do banco (Alembic) após você alterar os modelos.
 
-### 6. Execute as migrações (se aplicável)
+task test: Executa a suíte de testes com relatório de cobertura.
 
-Se o projeto usar banco de dados/migrações (exemplo com Alembic):
+task lint: Verifica erros de estilo no código usando o Ruff.
 
-```bash
-alembic upgrade head
-```
-*Apenas se o projeto pedir. Se não usar migrations, pule esse passo.*
+task format: Corrige automaticamente a formatação do código.
 
-### 7. Rode o sistema
+💡 Boas Práticas para o Grupo
+Dependências: Se precisar instalar uma biblioteca nova, use poetry add nome-da-lib. Não use pip.
 
-O comando pode variar, mas geralmente:
+Ambiente: O projeto utiliza Python 3.12. Garanta que seu Poetry esteja usando esta versão.
 
-```bash
-python main.py
-```
-ou (se for FastAPI/Uvicorn):
-
-```bash
-uvicorn main:app --reload
-```
-
-Acesse no navegador ou via Postman:
-```
-http://localhost:8000
-```
-ou conforme porta que aparece no seu terminal.
-
-### 8. Testando a API
-
-Se houver documentação automática, acesse:
-```
-http://localhost:8000/docs
-```
-ou
-```
-http://localhost:8000/redoc
-```
-
----
-
-## 💡 Dicas
-
-- Ative o ambiente virtual sempre que for trabalhar no projeto!
-- Se der erro de módulo, confira se as dependências estão instaladas no ambiente virtual.
-- Combine com o grupo antes de mexer na branch principal (`main`).
-
----
-
-## 🛠️ Scripts Úteis
-
-- `pip install -r requirements.txt` — Instala dependências
-- `uvicorn main:app --reload` — Sobe servidor em modo desenvolvimento (se usar FastAPI)
-- `pytest` — Executa os testes automatizados (se houver)
-
----
-
-## 📄 Licença
-
-MIT — Sinta-se livre para usar e aprimorar!
-
----
-
-Qualquer dúvida, chame no grupo ou abra uma issue no GitHub!
+Migrações: Sempre que alterar um arquivo em models/, lembre-se de rodar o task makemigrations e commitar o arquivo gerado na pasta versions/.
