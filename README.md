@@ -1,125 +1,107 @@
-# ApiSisBro
+# 🚀 ApiSisBro
 
-API para a cadeira de Projeto Integrado de Software 2.
+API desenvolvida para a disciplina de **Projeto Integrado de Software II**.  
+Utiliza **FastAPI**, **SQLAlchemy** e **Poetry**.
 
 ---
 
-## 🚀 Como rodar a aplicação (passo a passo)
+## 📖 Sobre o Projeto
 
-### 1. Pré-requisitos
+API RESTful com autenticação JWT, integração com Supabase Storage e boas práticas de desenvolvimento.
 
-Certifique-se de ter instalado:
+### Funcionalidades
 
-- [Git](https://git-scm.com/)
-- [Python 3.10+](https://www.python.org/downloads/)  
-- [pip](https://pip.pypa.io/en/stable/)
+- ✅ CRUD completo de usuários
+- ✅ Autenticação JWT
+- ✅ Upload de arquivos (Supabase Storage)
+- ✅ Documentação interativa (Swagger/ReDoc)
 
-### 2. Clone o repositório
+---
 
-Abra o terminal e execute:
+## 🛠️ Tecnologias Utilizadas
+
+| Categoria | Tecnologias |
+|-----------|-------------|
+| **Backend** | Python 3.12, FastAPI, Uvicorn |
+| **Database** | PostgreSQL, SQLAlchemy, Alembic |
+| **Autenticação** | JWT (python-jose), bcrypt |
+| **Storage** | Supabase Storage |
+| **DevOps** | Docker, Docker Compose, Poetry |
+
+---
+
+## 📋 Pré-requisitos
+
+- Python 3.12+
+- Poetry
+- (Instale o poetry com pip install poetry)
+- Docker e Docker Compose
+- Git
+
+---
+
+## 📦 Configuração do Ambiente
 
 ```bash
+# Clonar repositório
 git clone https://github.com/EdivarCr/ApiSisBro.git
 cd ApiSisBro
+
+# Instalar dependências
+poetry install
+
+# Configurar variáveis de ambiente
+cp env.example .env
 ```
 
-### 3. Crie e ative o ambiente virtual
+Edite o `.env`:
 
-No terminal digite:
-
-```bash
-python -m venv venv
-```
-
-Ative o ambiente virtual:
-
-- **Windows**
-  ```bash
-  venv\Scripts\activate
-  ```
-- **Linux/Mac**
-  ```bash
-  source venv/bin/activate
-  ```
-
-### 4. Instale as dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Configure variáveis de ambiente
-
-Se existir um arquivo `.env.example`, copie para `.env` e ajuste as variáveis conforme necessário:
-
-```bash
-cp .env.example .env
-# edite .env com suas configurações, se necessário
-```
-
-> Caso não tenha `.env.example`, pergunte ao responsável do grupo as variáveis necessárias.
-
-### 6. Execute as migrações (se aplicável)
-
-Se o projeto usar banco de dados/migrações (exemplo com Alembic):
-
-```bash
-alembic upgrade head
-```
-*Apenas se o projeto pedir. Se não usar migrations, pule esse passo.*
-
-### 7. Rode o sistema
-
-O comando pode variar, mas geralmente:
-
-```bash
-python main.py
-```
-ou (se for FastAPI/Uvicorn):
-
-```bash
-uvicorn main:app --reload
-```
-
-Acesse no navegador ou via Postman:
-```
-http://localhost:8000
-```
-ou conforme porta que aparece no seu terminal.
-
-### 8. Testando a API
-
-Se houver documentação automática, acesse:
-```
-http://localhost:8000/docs
-```
-ou
-```
-http://localhost:8000/redoc
+```env
+DATABASE_URL=postgresql://pimenta:pimenta123@localhost:5433/apisisbro
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_KEY=sua-chave-secreta
+SECRET_KEY=sua-chave-jwt
 ```
 
 ---
 
-## 💡 Dicas
+## 🐳 Execução com Docker
 
-- Ative o ambiente virtual sempre que for trabalhar no projeto!
-- Se der erro de módulo, confira se as dependências estão instaladas no ambiente virtual.
-- Combine com o grupo antes de mexer na branch principal (`main`).
+```bash
+# Subir banco e adminer
+docker compose up -d db adminer
+```
 
----
-
-## 🛠️ Scripts Úteis
-
-- `pip install -r requirements.txt` — Instala dependências
-- `uvicorn main:app --reload` — Sobe servidor em modo desenvolvimento (se usar FastAPI)
-- `pytest` — Executa os testes automatizados (se houver)
+| Serviço | Porta | Credenciais |
+|---------|-------|-------------|
+| PostgreSQL | 5433 | `pimenta` / `pimenta123` |
+| Adminer | 8080 | http://localhost:8080 |
 
 ---
 
-## 📄 Licença
+## 🏃 Servidor de Desenvolvimento
 
-MIT — Sinta-se livre para usar e aprimorar!
+```bash
+# Aplicar migrações
+poetry run task migrate
+
+# Iniciar servidor
+poetry run task run
+```
+
+- **API:** http://localhost:8000
+- **Swagger:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
 
 ---
 
-Qualquer dúvida, chame no grupo ou abra uma issue no GitHub!
+## 📜 Comandos Úteis
+
+| Comando | Descrição |
+|---------|-----------|
+| `poetry run task run` | Inicia a API |
+| `poetry run task migrate` | Aplica migrações |
+| `poetry run task makemigrations` | Cria nova migração |
+| `poetry run task test` | Executa testes |
+| `poetry run task lint` | Verifica código |
+| `poetry run task format` | Formata código |
