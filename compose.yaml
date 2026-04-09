@@ -5,16 +5,15 @@ services:
       dockerfile: Dockerfile
       target: development
     container_name: apisisbro-api
+    working_dir: /app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      - APP_ENV=development
-      - DEBUG=true
-      - DATABASE_URL=postgresql+asyncpg://pimenta:pimenta123@db:5432/pimenta_drbroa
-      - SUPABASE_URL=${SUPABASE_URL:-}
-      - SUPABASE_KEY=${SUPABASE_KEY:-}
+      - PYTHONPATH=/app/src
     volumes:
-      - ./src:/app/src:ro
+      - ./src:/app/src
       - ./tests:/app/tests:ro
       - ./migrations:/app/migrations
       - ./alembic.ini:/app/alembic.ini:ro

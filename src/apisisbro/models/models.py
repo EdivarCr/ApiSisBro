@@ -10,4 +10,5 @@ class User:
     id: Mapped[int] = mapped_column(init=False, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
-    password: Mapped[str]
+    password: Mapped[str] = mapped_column(nullable=True)
+    supabase_id: Mapped[str] = mapped_column(unique=True, nullable=True)
