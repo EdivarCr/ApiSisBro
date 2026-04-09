@@ -1,39 +1,23 @@
-from typing import Annotated
+import asyncio
+import sys
 
-from fastapi import Depends, FastAPI
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from .core.database import get_session
-from .models.models import User as UserModel
-from .schemas.schema import User, UserPublic
+from apisisbro.routers import auth_router
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 app = FastAPI(title='ApiSisBro')
 
-Session = Annotated[AsyncSession, Depends(get_session)]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['http://localhost:3000'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
-
-@app.post('/')
-def message():
-    return {'message': 'helo word'}
-
-
-@app.post('/user', response_model=UserPublic)
-async def create_user(user: User, session: Session):
-    db_user = await session.scalar(
-        select(UserModel).where(
-            (UserModel.username == user.name) | (UserModel.email == user.email)
-        )
-    )
-
-    db_user = UserModel(
-        username=user.name,
-        email=user.email,
-        password=user.password,  # Lembre-se de usar hash no futuro!
-    )
-
-    session.add(db_user)
-    await session.commit()
-    await session.refresh(db_user)
-
-    return db_user
+app.include_router(auth_router.router)
