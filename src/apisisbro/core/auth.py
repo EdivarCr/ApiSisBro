@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from supabase_auth.errors import AuthError
 
 from apisisbro.core.database import get_session
 from apisisbro.models.models import User
@@ -30,25 +31,28 @@ async def get_curren_user(request: Request, db: Session) -> User:
 
     try:
         response = supabase.auth.get_user(token)
-
-        if not response or not response.user:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail='user not found'
-            )
-
-        email = response.user.email
-
-        user = await db.scalar(select(User).where(User.email == email))
-
-        if not user:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail='Usuário não encontrado no sistema',
-            )
-
-        return user
-
-    except Exception as err:
+    except AuthError as err:
         raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED, detail='Não autorizado'
+            status_code=HTTPStatus.UNAUTHORIZED, detail='Token inválido ou expirado'
         ) from err
+
+    if not response or not response.user:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED, detail='user not found'
+        )
+
+    email = response.user.email
+    if not email:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED, detail='Token sem email de usuário'
+        )
+
+    user = await db.scalar(select(User).where(User.email == email))
+
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Usuário não encontrado no sistema',
+        )
+
+    return user
