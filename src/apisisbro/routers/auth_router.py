@@ -31,11 +31,15 @@ def login():
 async def callback(code: str, db: Session):
 
     if not code:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='code not found')
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail='code not found')
+    try:
+        _, access_token = await exchange_code_and_get_or_create_user(code, db)
+    except ValueError as err:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail=str(err)
+        ) from err
 
-    user, access_token = await exchange_code_and_get_or_create_user(code, db)
-
-    response = RedirectResponse(url='/me')
+    response = RedirectResponse(url='/auth/me')
     response.set_cookie(
         key='access_token',
         value=access_token,

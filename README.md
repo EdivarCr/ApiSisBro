@@ -57,7 +57,7 @@ cp env.example .env
 Edite o `.env`:
 
 ```env
-DATABASE_URL=postgresql://pimenta:pimenta123@localhost:5433/apisisbro
+DATABASE_URL=postgresql://user_db:senhadb@db:5433/db_name
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_KEY=sua-chave-secreta
 SECRET_KEY=sua-chave-jwt

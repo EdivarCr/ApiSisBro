@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from supabase_auth.errors import AuthError
 
 from apisisbro.models.models import User
 from apisisbro.services.supabase_client import supabase
@@ -24,14 +25,20 @@ async def exchange_code_and_get_or_create_user(
     """
     # 1. Troca o code por sessão no Supabase
     client = supabase
-    auth_response = client.auth.exchange_code_for_session({'auth_code': code})
+    try:
+        auth_response = client.auth.exchange_code_for_session({'auth_code': code})
+    except AuthError as err:
+        raise ValueError('Código OAuth inválido ou expirado.') from err
 
     session = auth_response.session
     user_info = auth_response.user
+    if not session or not user_info or not user_info.email or not session.access_token:
+        raise ValueError('Código OAuth inválido ou expirado.')
 
     # 2. Extrai dados do Google
     email = user_info.email
-    name = user_info.user_metadata.get('full_name', '')
+    user_metadata = user_info.user_metadata or {}
+    name = user_metadata.get('full_name') or email
     supabase_id = user_info.id
 
     # 3. Busca no nosso banco
