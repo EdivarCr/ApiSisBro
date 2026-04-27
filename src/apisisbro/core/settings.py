@@ -25,9 +25,9 @@ class Settings(BaseSettings):
 
     # Storage
 
-    STORAGE_BUCKET_PRODUTOS: str = 'produtos'
-    STORAGE_BUCKET_COMPROVANTES: str = 'comprovantes'
-    MAX_UPLOAD_SIZE_MB: int = 5
+    STORAGE_BUCKET_PRODUTOS: str
+    STORAGE_BUCKET_COMPROVANTES: str
+    MAX_UPLOAD_SIZE_MB: int = 8
 
     @property
     def max_upload_size_bytes(self) -> int:

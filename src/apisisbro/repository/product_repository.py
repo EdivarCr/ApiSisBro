@@ -46,3 +46,12 @@ class ProductRepository(BaseRepository[Produto]):
         )
 
         return result.all()
+
+    async def update_image(self, bucket: str, path: str, product: Produto) -> Produto:
+        product.imagem_bucket = bucket
+        product.imagem_path = path
+
+        await self.session.flush()
+        await self.session.refresh(product)
+
+        return product
