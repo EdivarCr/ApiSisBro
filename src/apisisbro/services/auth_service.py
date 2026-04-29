@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from supabase_auth.errors import AuthError
 
 from apisisbro.models.models import User
+from apisisbro.schemas.schema import UserCreate, UserLogin
 from apisisbro.services.supabase_client import supabase
 
 
@@ -52,3 +53,48 @@ async def exchange_code_and_get_or_create_user(
         await db.flush()  # gera o ID sem commitar (o commit é do get_session)
 
     return user, session.access_token
+
+
+async def login_email(user: UserLogin, _db: AsyncSession) -> dict[str, str]:
+    try:
+        res = supabase.auth.sign_in_with_passdword(
+            {'email': str(user.email), 'password': user.password}
+        )
+        if not res.session or not res.session.access_token:
+            raise ValueError('Credenciais inválidas')
+        return {
+            'access_token': res.session.access_token,
+            'token_type': 'bearer',
+        }
+    except AuthError as err:
+        raise ValueError('Credenciais inválidas') from err
+
+
+async def create_by_email(user: UserCreate, db: AsyncSession) -> User:
+    existing_email = await db.scalar(select(User).where(User.email == str(user.email)))
+    if existing_email:
+        raise ValueError('E-mail já cadastrado')
+
+    existing_username = await db.scalar(select(User).where(User.username == user.name))
+    if existing_username:
+        raise ValueError('Nome de usuário já está em uso')
+
+    try:
+        res = supabase.auth.sign_up(
+            {'email': str(user.email), 'password': user.password}
+        )
+        if not res.user or not res.user.id:
+            raise ValueError('Falha ao criar usuário no provedor de autenticação')
+    except AuthError as err:
+        raise ValueError('Falha ao criar usuário no provedor de autenticação') from err
+
+    db_user = User(
+        username=user.name,
+        email=str(user.email),
+        password='',
+        supabase_id=res.user.id,
+    )
+    db.add(db_user)
+    await db.flush()
+    await db.refresh(db_user)
+    return db_user

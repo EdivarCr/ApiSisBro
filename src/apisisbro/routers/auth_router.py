@@ -1,5 +1,3 @@
-# importar services de auth
-# fazer rotas de login e logout e callback
 from http import HTTPStatus
 from typing import Annotated
 
@@ -10,9 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apisisbro.core.auth import get_curren_user
 from apisisbro.core.database import get_session
 from apisisbro.models.models import User
+from apisisbro.schemas.schema import (
+    Token,
+    UserLogin,
+)
 from apisisbro.services.auth_service import (
     exchange_code_and_get_or_create_user,
     generate_google_login_url,
+    login_email,
 )
 
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -65,3 +68,14 @@ async def me(user: Current_user):
         'email': user.email,
         'username': user.username,
     }
+
+
+@router.post('/login-by-email', status_code=HTTPStatus.OK, response_model=Token)
+async def login_by_email(user: UserLogin, db: Session):
+    try:
+        return await login_email(user, db)
+    except ValueError as err:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail=str(err),
+        ) from err

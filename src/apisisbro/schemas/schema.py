@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from apisisbro.models.models import TipoProduto
 
 
-class User(BaseModel):
+class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
@@ -18,6 +18,16 @@ class UserPublic(BaseModel):
     username: str
     email: EmailStr
     id: int
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
 
 class ProdutoBase(BaseModel):
@@ -79,7 +89,7 @@ class ProdutoUpdate(BaseModel):
     # 1. Declarar os atributos do modelo como opcionais
     nome: str | None = None
     descricao: str | None = None
-    tipo: str | None = None # Use seu TipoProduto aqui se for um Enum
+    tipo: str | None = None  # Use seu TipoProduto aqui se for um Enum
     preco_varejo: Decimal | None = None
     preco_atacado: Decimal | None = None
     nivel_picancia: int | None = None
