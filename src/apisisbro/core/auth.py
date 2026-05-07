@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from supabase_auth.errors import AuthError
@@ -11,18 +11,21 @@ from apisisbro.core.database import get_session
 from apisisbro.models.models import User
 from apisisbro.services.supabase_client import supabase
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
-async def get_curren_user(request: Request, db: Session) -> User:
+async def get_curren_user(
+    request: Request,
+    db: Session,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+) -> User:
 
     token = request.cookies.get('access_token')
 
     if not token:
-        auth_header = request.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            token = auth_header.replace('Bearer ', '')
+        if credentials and credentials.scheme.lower() == 'bearer':
+            token = credentials.credentials
 
     if not token:
         raise HTTPException(
