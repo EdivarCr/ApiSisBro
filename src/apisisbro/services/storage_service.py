@@ -8,9 +8,9 @@ from apisisbro.core.settings import settings
 from apisisbro.services.supabase_client import supabase
 
 ALLOWED_CONTENT_TYPES = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
 }
 
 
@@ -41,8 +41,7 @@ class StorageService:
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
                 detail=(
-                    f'Imagem muito grande. '
-                    f'Limite de {settings.MAX_UPLOAD_SIZE_MB}MB.'
+                    f'Imagem muito grande. Limite de {settings.MAX_UPLOAD_SIZE_MB}MB.'
                 ),
             )
 
