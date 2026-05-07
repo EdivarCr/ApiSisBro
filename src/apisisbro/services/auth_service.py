@@ -1,9 +1,12 @@
+from http import HTTPStatus
+
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from supabase_auth.errors import AuthError
 
 from apisisbro.models.models import User
-from apisisbro.schemas.schema import UserCreate, UserLogin
+from apisisbro.schemas.schema import ForgotPasswordRequest, UserCreate, UserLogin
 from apisisbro.services.supabase_client import supabase
 
 
@@ -57,9 +60,10 @@ async def exchange_code_and_get_or_create_user(
 
 async def login_email(user: UserLogin, _db: AsyncSession) -> dict[str, str]:
     try:
-        res = supabase.auth.sign_in_with_passdword(
-            {'email': str(user.email), 'password': user.password}
-        )
+        res = supabase.auth.sign_in_with_password({
+            'email': str(user.email),
+            'password': user.password,
+        })
         if not res.session or not res.session.access_token:
             raise ValueError('Credenciais inválidas')
         return {
@@ -80,13 +84,14 @@ async def create_by_email(user: UserCreate, db: AsyncSession) -> User:
         raise ValueError('Nome de usuário já está em uso')
 
     try:
-        res = supabase.auth.sign_up(
-            {'email': str(user.email), 'password': user.password}
-        )
+        res = supabase.auth.sign_up({
+            'email': str(user.email),
+            'password': user.password,
+        })
         if not res.user or not res.user.id:
-            raise ValueError('Falha ao criar usuário no provedor de autenticação')
+            raise ValueError('Falha ao criar usuário no provedor de autenticação error')
     except AuthError as err:
-        raise ValueError('Falha ao criar usuário no provedor de autenticação') from err
+        raise ValueError(f'Falha no Supabase Auth: {err}') from err
 
     db_user = User(
         username=user.name,
@@ -98,3 +103,33 @@ async def create_by_email(user: UserCreate, db: AsyncSession) -> User:
     await db.flush()
     await db.refresh(db_user)
     return db_user
+
+
+def send_recovery_email(
+       email: ForgotPasswordRequest, redirect_url: ForgotPasswordRequest):
+    try:
+        supabase.auth.reset_password_email(
+            str(email),
+            options={"redirect_t": redirect_url}
+            )
+        return {'message': 'Email de recuperação enviado com sucesso'}
+    except Exception as e:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail=f'Erro ao enviar email: {str(e)}'
+        ) from e
+
+
+def update_password(access_token: str, refresh_token: str, new_password: str):
+    try:
+        supabase.auth.set_session(access_token, refresh_token)
+
+        supabase.auth.update_user({'password': new_password})
+
+        supabase.auth.sign_out()
+
+        return {'message': 'Sua senha foi atualizada com sucesso'}
+    except Exception as e:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=f'Erro ao atualizar senha: {str(e)}',
+        ) from e
