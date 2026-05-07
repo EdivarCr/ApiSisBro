@@ -31,6 +31,8 @@ dependencies = [
     "httpx>=0.28.0",
     "aiofiles>=24.1.0",
     "python-jose[cryptography] (>=3.5.0,<4.0.0)",
+    "faker (>=40.15.0,<41.0.0)",
+    "psycopg[binary] (>=3.3.4,<4.0.0)",
 ]
 
 [project.optional-dependencies]
@@ -55,10 +57,12 @@ preview = true
 select = [
     "I", "F", "E", "W", "PL", "PT", "B", "UP"
 ]
+ignore = ["PLR6301", "PLR0917", "PLR0913" ]
 
 [tool.ruff.format]
 preview = true
 quote-style = 'single'
+
 
 [tool.pytest.ini_options]
 pythonpath = "src"

@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from apisisbro.models.models import TipoProduto
 
 
-class User(BaseModel):
+class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
@@ -18,6 +18,16 @@ class UserPublic(BaseModel):
     username: str
     email: EmailStr
     id: int
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = 'bearer'
 
 
 class ProdutoBase(BaseModel):
@@ -38,11 +48,10 @@ class ProdutoBase(BaseModel):
 
     peso_gramas: Decimal | None = Field(
         default=None, gt=0, max_digits=10, decimal_places=2
-        )
+    )
 
 
 class ProdutoCreate(ProdutoBase):
-
     @classmethod
     def as_form(
         cls,
@@ -54,8 +63,8 @@ class ProdutoCreate(ProdutoBase):
         nivel_picancia: Annotated[int, Form(ge=0, le=10)],
         alergenicos: Annotated[str, Form(max_length=255)] = '',
         tem_carolina_reaper: Annotated[bool, Form()] = False,
-        estoque_minimo: Annotated[int, Form(ge=0)] = 10,
-        validade_meses: Annotated[int, Form(ge=0)] = 0,
+        estoque_minimo: Annotated[int, Form(ge=10)] = 10,
+        validade_meses: Annotated[int, Form(ge=0)] = 1,
         unidades_por_caixa: Annotated[int, Form(ge=1)] = 1,
         peso_gramas: Annotated[Decimal | None, Form(gt=0)] = None,
     ) -> 'ProdutoCreate':
@@ -79,7 +88,7 @@ class ProdutoUpdate(BaseModel):
     # 1. Declarar os atributos do modelo como opcionais
     nome: str | None = None
     descricao: str | None = None
-    tipo: str | None = None # Use seu TipoProduto aqui se for um Enum
+    tipo: str | None = None
     preco_varejo: Decimal | None = None
     preco_atacado: Decimal | None = None
     nivel_picancia: int | None = None
@@ -89,11 +98,11 @@ class ProdutoUpdate(BaseModel):
     validade_meses: int | None = None
     unidades_por_caixa: int | None = None
     peso_gramas: Decimal | None = None
+    ativo: bool | None = None
 
     @classmethod
     def as_form(
         cls,
-        # 2. Todos os campos do Form() PRECISAM ter "= None" no final para não serem obrigatórios
         nome: Annotated[str | None, Form(min_length=1, max_length=120)] = None,
         descricao: Annotated[str | None, Form(min_length=1, max_length=300)] = None,
         tipo: Annotated[str | None, Form()] = None,
@@ -108,28 +117,25 @@ class ProdutoUpdate(BaseModel):
         peso_gramas: Annotated[Decimal | None, Form(gt=0)] = None,
     ) -> 'ProdutoUpdate':
 
-        # 3. Coletamos tudo o que veio do formulário
         valores_recebidos = {
-            "nome": nome,
-            "descricao": descricao,
-            "tipo": tipo,
-            "preco_varejo": preco_varejo,
-            "preco_atacado": preco_atacado,
-            "nivel_picancia": nivel_picancia,
-            "alergenicos": alergenicos,
-            "tem_carolina_reaper": tem_carolina_reaper,
-            "estoque_minimo": estoque_minimo,
-            "validade_meses": validade_meses,
-            "unidades_por_caixa": unidades_por_caixa,
-            "peso_gramas": peso_gramas,
+            'nome': nome,
+            'descricao': descricao,
+            'tipo': tipo,
+            'preco_varejo': preco_varejo,
+            'preco_atacado': preco_atacado,
+            'nivel_picancia': nivel_picancia,
+            'alergenicos': alergenicos,
+            'tem_carolina_reaper': tem_carolina_reaper,
+            'estoque_minimo': estoque_minimo,
+            'validade_meses': validade_meses,
+            'unidades_por_caixa': unidades_por_caixa,
+            'peso_gramas': peso_gramas,
         }
 
-        # 4. O GRANDE TRUQUE: Filtramos para manter APENAS o que o usuário preencheu de verdade
-        # Isso garante que o exclude_unset=True na sua rota vai funcionar perfeitamente!
-        valores_preenchidos = {key: value for key, value in valores_recebidos.items()
-                            if value is not None}
+        valores_preenchidos = {
+            key: value for key, value in valores_recebidos.items() if value is not None
+        }
 
-        # Retorna o modelo preenchido apenas com as alterações
         return cls(**valores_preenchidos)
 
 
@@ -161,6 +167,7 @@ class ProdutoListItemAdmin(BaseModel):
 
     id: int
     nome: str
+    descricao: str
     tipo: TipoProduto
     preco_varejo: Decimal
     preco_atacado: Decimal
@@ -223,3 +230,14 @@ class ProdutoListResponsePublic(BaseModel):
 class UploadedImage(BaseModel):
     bucket: str
     path: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    redirect_url: str = "http://localhost:3000/reset-password"
+
+
+class ResetPasswordRequest(BaseModel):
+    access_token: str
+    refresh_token: str
+    new_password: str
