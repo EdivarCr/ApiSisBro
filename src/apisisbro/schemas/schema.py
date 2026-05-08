@@ -115,6 +115,7 @@ class ProdutoUpdate(BaseModel):
         validade_meses: Annotated[int | None, Form(ge=0)] = None,
         unidades_por_caixa: Annotated[int | None, Form(ge=1)] = None,
         peso_gramas: Annotated[Decimal | None, Form(gt=0)] = None,
+        ativo: Annotated[bool | None, Form()] = None,
     ) -> 'ProdutoUpdate':
 
         valores_recebidos = {
@@ -130,6 +131,7 @@ class ProdutoUpdate(BaseModel):
             'validade_meses': validade_meses,
             'unidades_por_caixa': unidades_por_caixa,
             'peso_gramas': peso_gramas,
+            'ativo': ativo,
         }
 
         valores_preenchidos = {
@@ -178,6 +180,10 @@ class ProdutoListItemAdmin(BaseModel):
     ativo: bool
     criado_em: datetime
     atualizado_em: datetime
+    validade_meses: int
+    unidades_por_caixa: int
+    peso_gramas: Decimal | None
+    estoque_minimo: int | None = None
 
 
 class ProdutoListItemPublic(BaseModel):
@@ -212,6 +218,7 @@ class FilterProduct(FilterPage):
     tipo: TipoProduto | None = Field(default=None)
     tem_carolina_reaper: bool | None = Field(default=None)
     nivel_picancia: int | None = Field(default=None)
+    
     ativo: bool | None = Field(default=None)
 
 

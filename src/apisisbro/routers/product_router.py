@@ -35,19 +35,16 @@ Product_Service = Annotated[ProductService, Depends(get_product_server)]
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=ProdutoOut)
 async def create_product(
-    product: Product_Create,
-    service: Product_Service,
-    user: Current_User,
+    product: Product_Create, service: Product_Service, user: Current_User,
     image: Annotated[UploadFile | None, File()] = None,
-):
+    ):
     return await service.create(product, user, image)
 
 
 @router.get(
-    '/dashboard_admin',
-    status_code=HTTPStatus.OK,
-    response_model=ProdutoListResponseAdmin,
-)
+        '/dashboard_admin',
+        status_code=HTTPStatus.OK,
+        response_model=ProdutoListResponseAdmin)
 async def list_products_admin(
     service: Product_Service,
     limit: int = 10,
@@ -58,9 +55,8 @@ async def list_products_admin(
     return {'products': list(products)}
 
 
-@router.get(
-    '/pesquisa', status_code=HTTPStatus.OK, response_model=ProdutoListResponseAdmin
-)
+@router.get('/pesquisa', status_code=HTTPStatus.OK,
+            response_model=ProdutoListResponseAdmin)
 async def search_products(service: Product_Service, filter: Filter):
     products = await service.list_by_filter(filter)
     return {'products': products}
@@ -70,8 +66,8 @@ async def search_products(service: Product_Service, filter: Filter):
 async def patch_product(
     service: Product_Service,
     id: int,
-    product_patch: ProdutoUpdate,
     user: Current_User,
+    product_patch: ProdutoUpdate = Depends(ProdutoUpdate.as_form),
     image: Annotated[UploadFile | None, File()] = None,
 ):
     return await service.update(id, product_patch, image)
