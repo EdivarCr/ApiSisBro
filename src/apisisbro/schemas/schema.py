@@ -177,6 +177,7 @@ class ProdutoListItemAdmin(BaseModel):
     tem_carolina_reaper: bool
     imagem_path: str | None
     imagem_bucket: str | None = None
+    alergenicos: str | None = None
     ativo: bool
     criado_em: datetime
     atualizado_em: datetime
