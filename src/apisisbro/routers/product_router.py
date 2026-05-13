@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apisisbro.core.auth import get_curren_user
@@ -69,5 +69,6 @@ async def patch_product(
     user: Current_User,
     product_patch: ProdutoUpdate = Depends(ProdutoUpdate.as_form),
     image: Annotated[UploadFile | None, File()] = None,
+    remove_image: bool = Form(False),
 ):
-    return await service.update(id, product_patch, image)
+    return await service.update(id, product_patch, image, remove_image)
