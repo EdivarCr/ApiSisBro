@@ -55,7 +55,11 @@ class ProductService:
         return await self.repo.get_product_by_filter(filter)
 
     async def update(
-        self, produto_id: int, produto_patch: ProdutoUpdate, imagem: UploadFile | None, remove_image: bool = False
+        self,
+        produto_id: int,
+        produto_patch: ProdutoUpdate,
+        imagem: UploadFile | None,
+        remove_image: bool = False,
     ) -> Produto:
         product = await self.repo.get_by_id(produto_id)
 
@@ -84,8 +88,10 @@ class ProductService:
 
         elif remove_image:
             if product.imagem_bucket and product.imagem_path:
-                self.storage_service.remove_file(product.imagem_bucket, product.imagem_path)
-            
+                self.storage_service.remove_file(
+                    product.imagem_bucket, product.imagem_path
+                )
+
             product.imagem_path = None
             product.imagem_bucket = None
 

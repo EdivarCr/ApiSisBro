@@ -106,12 +106,12 @@ async def create_by_email(user: UserCreate, db: AsyncSession) -> User:
 
 
 def send_recovery_email(
-       email: ForgotPasswordRequest, redirect_url: ForgotPasswordRequest):
+    email: ForgotPasswordRequest, redirect_url: ForgotPasswordRequest
+):
     try:
         supabase.auth.reset_password_email(
-            str(email),
-            options={"redirect_t": redirect_url}
-            )
+            str(email), options={'redirect_t': redirect_url}
+        )
         return {'message': 'Email de recuperação enviado com sucesso'}
     except Exception as e:
         raise HTTPException(

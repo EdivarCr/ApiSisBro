@@ -219,7 +219,6 @@ class FilterProduct(FilterPage):
     tipo: TipoProduto | None = Field(default=None)
     tem_carolina_reaper: bool | None = Field(default=None)
     nivel_picancia: int | None = Field(default=None)
-    
     ativo: bool | None = Field(default=None)
 
 
@@ -242,7 +241,7 @@ class UploadedImage(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
-    redirect_url: str = "http://localhost:3000/reset-password"
+    redirect_url: str = 'http://localhost:3000/reset-password'
 
 
 class ResetPasswordRequest(BaseModel):
