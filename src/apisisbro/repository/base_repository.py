@@ -22,6 +22,16 @@ class BaseRepository[ModelType](ABC):
     async def get_by_id(self, id: int) -> ModelType | None:
         return await self.session.scalar(select(self.model).where(self.model.id == id))
 
+    async def get_object_field(self, field: str, value: object) -> ModelType | None:
+        if not hasattr(self.model, field):
+            raise AttributeError(f"{self.model.__name__} não possui o campo '{field}'")
+
+        column = getattr(self.model, field)
+        return await self.session.scalar(select(self.model).where(column == value))
+
+    async def get_by_name(self, name: str, field: str = 'name') -> ModelType | None:
+        return await self.get_object_field(field=field, value=name)
+
     async def get_all(self, limit: int = 10, offset: int = 0) -> Sequence[ModelType]:
         result = await self.session.scalars(
             select(self.model).limit(limit).offset(offset)
