@@ -110,8 +110,9 @@ def send_recovery_email(
 ):
     try:
         supabase.auth.reset_password_email(
-            str(email), options={'redirect_t': redirect_url}
-        )
+            str(email),
+            options={"redirect_to": redirect_url}
+            )
         return {'message': 'Email de recuperação enviado com sucesso'}
     except Exception as e:
         raise HTTPException(
