@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from apisisbro.routers import (
     auth_router,
+    entrada_insumo_router,
     insumo_router,
     product_router,
     user_router,
@@ -29,3 +30,4 @@ app.include_router(auth_router.router)
 app.include_router(user_router.router)
 app.include_router(product_router.router)
 app.include_router(insumo_router.router)
+app.include_router(entrada_insumo_router.router)

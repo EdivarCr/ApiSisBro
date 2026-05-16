@@ -1,16 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apisisbro.models.models import Insumo
+from apisisbro.models.models import EntradaInsumo
 from apisisbro.repository.base_repository import BaseRepository
 
 
-class InsumoRepository(BaseRepository[Insumo]):
+class EntradaInsumoRepository(BaseRepository[EntradaInsumo]):
     def __init__(self, session: AsyncSession):
         super().__init__(session)
 
     @property
-    def model(self) -> type[Insumo]:
-        return Insumo
+    def model(self) -> type[EntradaInsumo]:
+        return EntradaInsumo
 
-    async def get_insumo_by_name(self, nome: str) -> Insumo | None:
+    async def get_insumo_by_name(self, nome: str) -> EntradaInsumo | None:
         return await self.get_by_name(nome, field='nome')
