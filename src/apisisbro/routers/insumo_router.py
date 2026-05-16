@@ -6,7 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from apisisbro.core.auth import get_curren_user
 from apisisbro.core.dependecies import InsumoServiceDep
 from apisisbro.models.models import User
-from apisisbro.schemas.producao_schema import InsumoCreate, InsumoResponse, InsumoUpdate
+from apisisbro.schemas.producao_schema import (
+    InsumoCreate,
+    InsumoResponse,
+    InsumoUpdate,
+)
 
 Current_User = Annotated[
     User,
@@ -25,24 +29,20 @@ async def create_insumo(
 ):
     try:
         return await service.create(insumoCreate)
-    except SyntaxError as e:
+    except ValueError as e:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT, detail='Erro ao criar insumo'
         ) from e
 
 
-@router.patch(
-    '/{insumo_id}', status_code=HTTPStatus.OK, response_model=InsumoResponse
-)
+@router.patch('/{insumo_id}', status_code=HTTPStatus.OK, response_model=InsumoResponse)
 async def update_insumo(
-    insumo_id: int,
-    service: InsumoServiceDep,
-    insumoUpdate: InsumoUpdate
-    ):
+    insumo_id: int, service: InsumoServiceDep, insumoUpdate: InsumoUpdate
+):
     return await service.update(insumo_id, insumoUpdate)
 
 
-@router.get('/all', response_model=list[InsumoResponse])
+@router.get('/', response_model=list[InsumoResponse])
 async def get_all_insumo(service: InsumoServiceDep):
     return await service.list_all()
 
