@@ -16,10 +16,8 @@ class ProductRepository(BaseRepository[Produto]):
     def model(self) -> type[Produto]:
         return Produto
 
-    async def get_product_by_name(self, name_product: str) -> Produto | None:
-        return await self.session.scalar(
-            select(Produto).where(Produto.nome == name_product)
-        )
+    async def get_product_by_name(self, nome: str) -> Produto | None:
+        return await self.get_by_name(nome, field=nome)
 
     async def get_product_by_filter(self, filter: FilterProduct) -> Sequence[Produto]:
         query = select(Produto)
