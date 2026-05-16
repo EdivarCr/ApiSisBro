@@ -242,7 +242,7 @@ class UploadedImage(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
-    redirect_url: str = "http://localhost:3000/reset-password"
+    redirect_url: str = "http://localhost:5173/reset-password"
 
 
 class ResetPasswordRequest(BaseModel):
