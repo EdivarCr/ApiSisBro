@@ -57,7 +57,7 @@ preview = true
 select = [
     "I", "F", "E", "W", "PL", "PT", "B", "UP"
 ]
-ignore = ["PLR6301", "PLR0917", "PLR0913", "BOO8"]
+ignore = ["PLR6301", "PLR0917", "PLR0913"]
 
 [tool.ruff.format]
 preview = true

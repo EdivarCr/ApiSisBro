@@ -219,7 +219,6 @@ class FilterProduct(FilterPage):
     tipo: TipoProduto | None = Field(default=None)
     tem_carolina_reaper: bool | None = Field(default=None)
     nivel_picancia: int | None = Field(default=None)
-    
     ativo: bool | None = Field(default=None)
 
 
