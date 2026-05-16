@@ -4,7 +4,10 @@ from fastapi import HTTPException
 
 from apisisbro.models.models import Insumo
 from apisisbro.repository.insumo_repository import InsumoRepository
-from apisisbro.schemas.producao_schema import InsumoCreate, InsumoUpdate
+from apisisbro.schemas.producao_schema import (
+    InsumoCreate,
+    InsumoUpdate,
+)
 
 
 class InsumoService:
@@ -35,20 +38,30 @@ class InsumoService:
                 status_code=HTTPStatus.NOT_FOUND,
                 detail='Insumo não econtrado',
             )
-        
+
         for field, value in insumoUpdate.model_dump(
             exclude_unset=True, exclude_none=True
         ).items():
             setattr(insumo, field, value)
-        
+
         return await self.repo.update(insumo)
 
     async def get_by_id(self, insumo_id: int) -> Insumo:
         insumo = await self.repo.get_by_id(insumo_id)
 
-        if insumo is not None:
+        if insumo is None:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND, detail='Insumo nao encontrado'
             )
 
         return insumo
+
+    async def delete(self, insumo_id: int) -> Insumo:
+        insumo = await self.repo.get_by_id(insumo_id)
+
+        if insumo is None:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='Insumo nao encontrado'
+            )
+
+        return await self.repo.delete(insumo)
