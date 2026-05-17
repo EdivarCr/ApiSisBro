@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,3 +46,31 @@ class BaseRepository[ModelType](ABC):
 
     async def delete(self, entity: ModelType) -> None:
         await self.session.delete(entity)
+
+    async def get_all_by_filter(
+        self,
+        filters: Mapping[str, Any],
+        *,
+        like_fields: set[str] | None = None,
+        limit: int = 10,
+        offset: int = 0,
+    ) -> Sequence[ModelType]:
+        query = select(self.model)
+        like_fields = like_fields or set()
+
+        for field, value in filters.items():
+            if value is None:
+                continue
+            if not hasattr(self.model, field):
+                raise AttributeError(
+                    f"{self.model.__name__} não possui o campo '{field}'"
+                )
+
+            column = getattr(self.model, field)
+            if field in like_fields and isinstance(value, str):
+                query = query.where(column.ilike(f'%{value}%'))
+            else:
+                query = query.where(column == value)
+
+        result = await self.session.scalars(query.offset(offset).limit(limit))
+        return result.all()
