@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +19,17 @@ class InsumoBase(BaseModel):
         max_digits=10,
         decimal_places=3,
     )
+
+
+class FilterPage(BaseModel):
+    offset: int = 0
+    limit: int = 10
+
+
+class FilterInsumo(FilterPage):
+    nome: str | None = Field(default=None, min_length=3)
+    tipo: TipoInsumo | None = Field(default=None)
+    ativo: bool | None = Field(default=None)
 
 
 class InsumoCreate(InsumoBase):
@@ -49,6 +60,12 @@ class InsumoResponse(InsumoBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class InsumoListResponse(BaseModel):
+    insumos: list[InsumoResponse]
+    offset: int = 0
+    limit: int = 10
+
+
 class EntradaInsumoCreate(BaseModel):
     insumo_id: int
     quantidade_comprada: Decimal = Field(
@@ -63,5 +80,19 @@ class EntradaInsumoResponse(EntradaInsumoCreate):
     id: int
     criado_por_id: int
     data_entrada: datetime
+    quantidade_comprada: Decimal = Field(ge=0, max_digits=10, decimal_places=2)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class EntradaInsumoListResponse(BaseModel):
+    entradaInsumo: list[EntradaInsumoResponse]
+    offset: int = 0
+    limit: int = 10
+
+
+class FilterEntradaInsumo(FilterPage):
+    insumo_nome: str | None = Field(default=None, min_length=3)
+    insumo_tipo: TipoInsumo | None = None
+    insumo_ativo: bool | None = None
+    data_entrada: date | None = None

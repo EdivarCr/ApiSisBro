@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from decimal import Decimal
 from http import HTTPStatus
 
@@ -6,7 +7,10 @@ from fastapi import HTTPException
 from apisisbro.models.models import EntradaInsumo
 from apisisbro.repository.entrada_insumo_repository import EntradaInsumoRepository
 from apisisbro.repository.insumo_repository import InsumoRepository
-from apisisbro.schemas.producao_schema import EntradaInsumoCreate
+from apisisbro.schemas.producao_schema import (
+    EntradaInsumoCreate,
+    FilterEntradaInsumo,
+)
 
 
 class EntradaInsumoService:
@@ -48,8 +52,10 @@ class EntradaInsumoService:
 
         return entrada
 
-    async def get_all_entrada_insumo(self):
-        return await self.repo.get_all()
+    async def get_all_entrada_insumo(
+        self, limit: int = 10, offset: int = 0
+    ) -> Sequence[EntradaInsumo]:
+        return await self.repo.get_all(limit, offset)
 
     async def get_entrada_insumo_by_id(self, entrada_id: int):
         entrada_insumo = await self.repo.get_by_id(entrada_id)
@@ -75,8 +81,8 @@ class EntradaInsumoService:
 
         if novo_estoque < 0:
             raise ValueError(
-            "Não é possível cancelar esta entrada. Os insumos já foram consumidos "
-            "em uma produção. O estoque ficaria negativo."
+                'Não é possível cancelar esta entrada. Os insumos já foram consumidos '
+                'em uma produção. O estoque ficaria negativo.'
             )
         quantidade = insumo.quantidade_estoque
         custo_unitario = insumo.custo_unitario
@@ -95,4 +101,9 @@ class EntradaInsumoService:
         await self.repo.delete(entrada_insumo)
         await self.repo.update(insumo)
 
-        return {"message": "Entrada estornada e estoque atualizado com sucesso"}
+        return {'message': 'Entrada estornada e estoque atualizado com sucesso'}
+
+    async def list_by_filter(
+        self, filter: FilterEntradaInsumo
+    ) -> Sequence[EntradaInsumo]:
+        return await self.repo.get_by_filter(filter)
