@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apisisbro.models.models import Produto
@@ -20,30 +19,13 @@ class ProductRepository(BaseRepository[Produto]):
         return await self.get_by_name(nome, field=nome)
 
     async def get_product_by_filter(self, filter: FilterProduct) -> Sequence[Produto]:
-        query = select(Produto)
-
-        if filter.nome is not None:
-            query = query.where(Produto.nome.ilike(f'%{filter.nome}%'))
-
-        if filter.ativo is not None:
-            query = query.filter(Produto.ativo == filter.ativo)
-
-        if filter.tem_carolina_reaper is not None:
-            query = query.filter(
-                Produto.tem_carolina_reaper == filter.tem_carolina_reaper
-            )
-
-        if filter.tipo is not None:
-            query = query.filter(Produto.tipo == filter.tipo)
-
-        if filter.nivel_picancia is not None:
-            query = query.filter(Produto.nivel_picancia == filter.nivel_picancia)
-
-        result = await self.session.scalars(
-            query.offset(filter.offset).limit(filter.limit)
+        filters = filter.model_dump(exclude={'offset', 'limit'}, exclude_none=True)
+        return await self.get_all_by_filter(
+            filters,
+            like_fields={'nome'},
+            limit=filter.limit,
+            offset=filter.offset,
         )
-
-        return result.all()
 
     async def update_image(self, bucket: str, path: str, product: Produto) -> Produto:
         product.imagem_bucket = bucket
