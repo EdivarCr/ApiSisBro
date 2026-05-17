@@ -1,13 +1,11 @@
+from collections.abc import Sequence
 from http import HTTPStatus
 
 from fastapi import HTTPException
 
 from apisisbro.models.models import Insumo
 from apisisbro.repository.insumo_repository import InsumoRepository
-from apisisbro.schemas.producao_schema import (
-    InsumoCreate,
-    InsumoUpdate,
-)
+from apisisbro.schemas.producao_schema import FilterInsumo, InsumoCreate, InsumoUpdate
 
 
 class InsumoService:
@@ -17,8 +15,8 @@ class InsumoService:
     ):
         self.repo = repo
 
-    async def list_all(self):
-        return await self.repo.get_all()
+    async def list(self, limit: int = 10, offset: int = 0) -> Sequence[Insumo]:
+        return await self.repo.get_all(limit, offset)
 
     async def create(self, insumoCreate: InsumoCreate) -> Insumo:
         existing = await self.repo.get_insumo_by_name(insumoCreate.nome)
@@ -55,6 +53,9 @@ class InsumoService:
             )
 
         return insumo
+
+    async def list_by_filter(self, filter: FilterInsumo) -> Sequence[Insumo]:
+        return await self.repo.get_product_by_filter(filter)
 
     async def delete(self, insumo_id: int) -> Insumo:
         insumo = await self.repo.get_by_id(insumo_id)
