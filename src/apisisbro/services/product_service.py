@@ -14,9 +14,7 @@ class ProductService:
         self.repo = repo
         self.storage_service = storage_service
 
-    async def create(
-        self, product: ProdutoCreate, user: User, image: UploadFile
-    ) -> Produto:
+    async def create(self, product: ProdutoCreate, user: User) -> Produto:
         existing = await self.repo.get_product_by_name(product.nome)
 
         if existing is not None:
@@ -24,29 +22,12 @@ class ProductService:
                 status_code=HTTPStatus.CONFLICT, detail='already exists'
             )
 
-        db_product = Produto(**product.model_dump(), criador_id=user.id)
-        created = await self.repo.create(db_product)
-
-        if image is None:
-            return created
-
         try:
-            uploaded = await self.storage_service.upload_product_image(
-                file=image, product_id=created.id
-            )
-            created = await self.repo.update_image(
-                product=created,
-                bucket=uploaded.bucket,
-                path=uploaded.path,
-            )
-
-            return created
-
-        except Exception:
-            # Como a imagem é parte obrigatória da criação neste fluxo,
-            # desfaz a criação do produto se o upload falhar.
-            await self.repo.delete(created)
-            raise
+            return await self.repo.create_product_with_recipe(product, user.id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail=f'Erro ao salvar: {str(e)}'
+            ) from e
 
     async def list(self, limit: int = 10, offset: int = 0) -> Sequence[Produto]:
         return await self.repo.get_all(limit, offset)
@@ -58,8 +39,6 @@ class ProductService:
         self,
         produto_id: int,
         produto_patch: ProdutoUpdate,
-        imagem: UploadFile | None,
-        remove_image: bool = False,
     ) -> Produto:
         product = await self.repo.get_by_id(produto_id)
 
@@ -72,12 +51,58 @@ class ProductService:
         for field, value in produto_patch.model_dump(exclude_unset=True).items():
             setattr(product, field, value)
 
-        if imagem is not None:
+        return await self.repo.update(product)
+
+    async def upload(self, produto_id: int, image: UploadFile):
+        product = await self.repo.get_by_id(produto_id)
+
+        if product is None:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='produto nao encontrado',
+            )
+
+        if image is None:
+            return None
+
+        try:
+            uploaded = await self.storage_service.upload_product_image(
+                file=image, product_id=product.id
+            )
+            updated_product = await self.repo.update_image(
+                product=product,
+                bucket=uploaded.bucket,
+                path=uploaded.path,
+            )
+
+            return updated_product
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                detail=f'Erro ao fazer upload da imagem: {str(e)}',
+            ) from e
+
+    async def update_image(
+        self,
+        produto_id: int,
+        image: UploadFile | None,
+        remove_image: bool = False,
+    ):
+        product = await self.repo.get_by_id(produto_id)
+
+        if product is None:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='produto nao encontrado',
+            )
+
+        if image is not None:
             old_bucket = product.imagem_bucket
             old_path = product.imagem_path
 
             uploaded = await self.storage_service.upload_product_image(
-                file=imagem, product_id=product.id
+                file=image, product_id=product.id
             )
 
             product.imagem_bucket = uploaded.bucket

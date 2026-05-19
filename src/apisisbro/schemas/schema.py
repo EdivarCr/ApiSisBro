@@ -1,8 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated
 
-from fastapi import Form
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from apisisbro.models.models import TipoProduto
@@ -30,6 +28,11 @@ class Token(BaseModel):
     token_type: str = 'bearer'
 
 
+class ProdutoInsumoCreate(BaseModel):
+    insumo_id: int
+    quantidade_necessaria: Decimal = Field(gt=0, max_digits=10, decimal_places=3)
+
+
 class ProdutoBase(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
     descricao: str = Field(min_length=1, max_length=300)
@@ -52,93 +55,26 @@ class ProdutoBase(BaseModel):
 
 
 class ProdutoCreate(ProdutoBase):
-    @classmethod
-    def as_form(
-        cls,
-        nome: Annotated[str, Form(min_length=1, max_length=120)],
-        descricao: Annotated[str, Form(min_length=1, max_length=300)],
-        tipo: Annotated[TipoProduto, Form()],
-        preco_varejo: Annotated[Decimal, Form(gt=0)],
-        preco_atacado: Annotated[Decimal, Form(gt=0)],
-        nivel_picancia: Annotated[int, Form(ge=0, le=10)],
-        alergenicos: Annotated[str, Form(max_length=255)] = '',
-        tem_carolina_reaper: Annotated[bool, Form()] = False,
-        estoque_minimo: Annotated[int, Form(ge=10)] = 10,
-        validade_meses: Annotated[int, Form(ge=0)] = 1,
-        unidades_por_caixa: Annotated[int, Form(ge=1)] = 1,
-        peso_gramas: Annotated[Decimal | None, Form(gt=0)] = None,
-    ) -> 'ProdutoCreate':
-        return cls(
-            nome=nome,
-            descricao=descricao,
-            tipo=tipo,
-            preco_varejo=preco_varejo,
-            preco_atacado=preco_atacado,
-            nivel_picancia=nivel_picancia,
-            alergenicos=alergenicos,
-            tem_carolina_reaper=tem_carolina_reaper,
-            estoque_minimo=estoque_minimo,
-            validade_meses=validade_meses,
-            unidades_por_caixa=unidades_por_caixa,
-            peso_gramas=peso_gramas,
-        )
+    receita: list[ProdutoInsumoCreate] = Field(min_length=1)
 
 
 class ProdutoUpdate(BaseModel):
     # 1. Declarar os atributos do modelo como opcionais
-    nome: str | None = None
-    descricao: str | None = None
-    tipo: str | None = None
-    preco_varejo: Decimal | None = None
-    preco_atacado: Decimal | None = None
-    nivel_picancia: int | None = None
-    alergenicos: str | None = None
+    nome: str | None = Field(default=None, min_length=1, max_length=120)
+    descricao: str | None = Field(default=None, min_length=1, max_length=300)
+    tipo: str | None = None  # Se estiver usando o Enum TipoProduto, coloque aqui
+    preco_varejo: Decimal | None = Field(default=None, gt=0)
+    preco_atacado: Decimal | None = Field(default=None, gt=0)
+    nivel_picancia: int | None = Field(default=None, ge=0, le=10)
+    alergenicos: str | None = Field(default=None, max_length=255)
     tem_carolina_reaper: bool | None = None
-    estoque_minimo: int | None = None
-    validade_meses: int | None = None
-    unidades_por_caixa: int | None = None
-    peso_gramas: Decimal | None = None
+    estoque_minimo: int | None = Field(default=None, ge=0)
+    validade_meses: int | None = Field(default=None, ge=0)
+    unidades_por_caixa: int | None = Field(default=None, ge=1)
+    peso_gramas: Decimal | None = Field(default=None, gt=0)
     ativo: bool | None = None
 
-    @classmethod
-    def as_form(
-        cls,
-        nome: Annotated[str | None, Form(min_length=1, max_length=120)] = None,
-        descricao: Annotated[str | None, Form(min_length=1, max_length=300)] = None,
-        tipo: Annotated[str | None, Form()] = None,
-        preco_varejo: Annotated[Decimal | None, Form(gt=0)] = None,
-        preco_atacado: Annotated[Decimal | None, Form(gt=0)] = None,
-        nivel_picancia: Annotated[int | None, Form(ge=0, le=10)] = None,
-        alergenicos: Annotated[str | None, Form(max_length=255)] = None,
-        tem_carolina_reaper: Annotated[bool | None, Form()] = None,
-        estoque_minimo: Annotated[int | None, Form(ge=0)] = None,
-        validade_meses: Annotated[int | None, Form(ge=0)] = None,
-        unidades_por_caixa: Annotated[int | None, Form(ge=1)] = None,
-        peso_gramas: Annotated[Decimal | None, Form(gt=0)] = None,
-        ativo: Annotated[bool | None, Form()] = None,
-    ) -> 'ProdutoUpdate':
-
-        valores_recebidos = {
-            'nome': nome,
-            'descricao': descricao,
-            'tipo': tipo,
-            'preco_varejo': preco_varejo,
-            'preco_atacado': preco_atacado,
-            'nivel_picancia': nivel_picancia,
-            'alergenicos': alergenicos,
-            'tem_carolina_reaper': tem_carolina_reaper,
-            'estoque_minimo': estoque_minimo,
-            'validade_meses': validade_meses,
-            'unidades_por_caixa': unidades_por_caixa,
-            'peso_gramas': peso_gramas,
-            'ativo': ativo,
-        }
-
-        valores_preenchidos = {
-            key: value for key, value in valores_recebidos.items() if value is not None
-        }
-
-        return cls(**valores_preenchidos)
+    receita: list[ProdutoInsumoCreate] | None = None
 
 
 class ProdutoPublic(BaseModel):

@@ -4,7 +4,13 @@ import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from apisisbro.routers import auth_router, product_router, user_router
+from apisisbro.routers import (
+    auth_router,
+    entrada_insumo_router,
+    insumo_router,
+    product_router,
+    user_router,
+)
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -23,3 +29,5 @@ app.add_middleware(
 app.include_router(auth_router.router)
 app.include_router(user_router.router)
 app.include_router(product_router.router)
+app.include_router(insumo_router.router)
+app.include_router(entrada_insumo_router.router)

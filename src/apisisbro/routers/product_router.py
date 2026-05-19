@@ -23,8 +23,6 @@ router = APIRouter(prefix='/produtos', tags=['produtos'])
 Session = Annotated[AsyncSession, Depends(get_session)]
 Current_User = Annotated[User, Depends(get_curren_user)]
 Filter = Annotated[FilterProduct, Depends()]
-Product_Create = Annotated[ProdutoCreate, Depends(ProdutoCreate.as_form)]
-Product_Update = Annotated[ProdutoUpdate, Depends(ProdutoUpdate.as_form)]
 
 
 def get_product_server(session: Session) -> ProductService:
@@ -36,12 +34,21 @@ Product_Service = Annotated[ProductService, Depends(get_product_server)]
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=ProdutoOut)
 async def create_product(
-    product: Product_Create,
+    product: ProdutoCreate,
     service: Product_Service,
+    user: Current_User,
+):
+    return await service.create(product, user)
+
+
+@router.post('/imagem_produto', status_code=HTTPStatus.CREATED)
+async def upload_image(
+    service: Product_Service,
+    id_produto: int,
     user: Current_User,
     image: Annotated[UploadFile | None, File()] = None,
 ):
-    return await service.create(product, user, image)
+    return await service.upload(id_produto, image)
 
 
 @router.get(
@@ -73,7 +80,16 @@ async def patch_product(
     id: int,
     user: Current_User,
     product_patch: ProdutoUpdate,
+):
+    return await service.update(id, product_patch)
+
+
+@router.patch('/{produto_id}/update_image', status_code=HTTPStatus.OK)
+async def patch_image(
+    service: Product_Service,
+    produto_id: int,
+    user: Current_User,
     image: Annotated[UploadFile | None, File()] = None,
     remove_image: bool = Form(False),
 ):
-    return await service.update(id, product_patch, image, remove_image)
+    return await service.update_image(produto_id, image, remove_image)
