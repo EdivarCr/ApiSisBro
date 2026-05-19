@@ -41,7 +41,7 @@ async def get_all_entradas_insumo(
     service: EntradaInsumoServideDep,
     limit: int = 10,
     offset: int = 0,
-    ):
+):
     entradas = await service.get_all_entrada_insumo(limit=limit, offset=offset)
     return {
         'entradaInsumo': list(entradas),
@@ -71,14 +71,9 @@ async def estornar_entra_insumo(
 
 
 @router.get(
-    '/pesquisa',
-    status_code=HTTPStatus.OK,
-    response_model=EntradaInsumoListResponse
+    '/pesquisa', status_code=HTTPStatus.OK, response_model=EntradaInsumoListResponse
 )
-async def search_entrada_insumo(
-    service: EntradaInsumoServideDep,
-    filter: Filter
-):
+async def search_entrada_insumo(service: EntradaInsumoServideDep, filter: Filter):
     entradas = await service.list_by_filter(filter)
     return {
         'entradaInsumo': list(entradas),

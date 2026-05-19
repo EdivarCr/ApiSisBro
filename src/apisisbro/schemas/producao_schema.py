@@ -3,10 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from apisisbro.models.models import (
-    TipoInsumo,
-    UnidadeMedida,
-)
+from apisisbro.models.models import StatusLote, TipoInsumo, UnidadeMedida
 
 
 class InsumoBase(BaseModel):
@@ -39,7 +36,6 @@ class InsumoCreate(InsumoBase):
 class InsumoUpdate(BaseModel):
     nome: str | None = Field(None, max_length=120, min_length=1)
     tipo: TipoInsumo | None = None
-    unidade_de_medida: UnidadeMedida | None = None
     estoque_minimo: Decimal | None = Field(
         None,
         ge=0,
@@ -96,3 +92,34 @@ class FilterEntradaInsumo(FilterPage):
     insumo_tipo: TipoInsumo | None = None
     insumo_ativo: bool | None = None
     data_entrada: date | None = None
+
+
+class ProducaoBase(BaseModel):
+    produto_id: int
+    quantidade: int = Field(
+        gt=0, description='Quantidade de unidades/frascos produzidos'
+    )
+
+
+class ProducaoCreate(ProducaoBase):
+    pass
+
+
+class ProducaoResponse(ProducaoCreate):
+    id: int
+    codigo_lote: str
+    criado_por_id: int
+    validade: date
+    custo_total: Decimal
+    custo_unitario: Decimal
+    status: StatusLote
+    fabricacao: datetime
+    atualizado_em: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProducaoListResponse(BaseModel):
+    producao: list[ProducaoResponse]
+    offset: int = 0
+    limit: int = 10
