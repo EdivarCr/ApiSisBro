@@ -208,9 +208,13 @@ class ProdutoInsumo:
         Numeric(10, 3), nullable=False
     )
 
-    produto: Mapped['Produto'] = relationship(back_populates='formulas', init=False)
+    produto: Mapped['Produto'] = relationship(
+        back_populates='formulas',
+        init=False,
+        repr=False,
+    )
 
-    insumo: Mapped['Insumo'] = relationship(init=False)
+    insumo: Mapped['Insumo'] = relationship(init=False, repr=False)
 
 
 @table_registry.mapped_as_dataclass
@@ -239,7 +243,7 @@ class Producao:
     status: Mapped[StatusLote] = mapped_column(
         sqlEnum(StatusLote, name='status_lote_enum'),
         nullable=False,
-        default=StatusLote.ATIVO
+        default=StatusLote.ATIVO,
     )
     atualizado_em: Mapped[datetime] = mapped_column(
         init=False,
