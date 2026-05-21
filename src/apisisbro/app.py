@@ -9,6 +9,7 @@ from apisisbro.routers import (
     entrada_insumo_router,
     insumo_router,
     product_router,
+    production_router,
     user_router,
 )
 
@@ -31,3 +32,4 @@ app.include_router(user_router.router)
 app.include_router(product_router.router)
 app.include_router(insumo_router.router)
 app.include_router(entrada_insumo_router.router)
+app.include_router(production_router.router)

@@ -99,6 +99,7 @@ class ProducaoBase(BaseModel):
     quantidade: int = Field(
         gt=0, description='Quantidade de unidades/frascos produzidos'
     )
+    validade: date
 
 
 class ProducaoCreate(ProducaoBase):
