@@ -41,7 +41,9 @@ async def create_product(
     return await service.create(product, user)
 
 
-@router.post('/imagem_produto', status_code=HTTPStatus.CREATED)
+@router.post(
+    '/imagem_produto', status_code=HTTPStatus.CREATED, response_model=ProdutoOut
+)
 async def upload_image(
     service: Product_Service,
     id_produto: int,
@@ -84,7 +86,11 @@ async def patch_product(
     return await service.update(id, product_patch)
 
 
-@router.patch('/{produto_id}/update_image', status_code=HTTPStatus.OK)
+@router.patch(
+    '/{produto_id}/update_image',
+    status_code=HTTPStatus.OK,
+    response_model=ProdutoOut,
+)
 async def patch_image(
     service: Product_Service,
     produto_id: int,

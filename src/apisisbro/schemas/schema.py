@@ -33,6 +33,13 @@ class ProdutoInsumoCreate(BaseModel):
     quantidade_necessaria: Decimal = Field(gt=0, max_digits=10, decimal_places=3)
 
 
+class ProdutoInsumoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    insumo_id: int
+    quantidade_necessaria: Decimal
+
+
 class ProdutoBase(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
     descricao: str = Field(min_length=1, max_length=300)
@@ -55,7 +62,7 @@ class ProdutoBase(BaseModel):
 
 
 class ProdutoCreate(ProdutoBase):
-    receita: list[ProdutoInsumoCreate] = Field(min_length=1)
+    formulas: list[ProdutoInsumoCreate] = Field(min_length=1)
 
 
 class ProdutoUpdate(BaseModel):
@@ -74,7 +81,7 @@ class ProdutoUpdate(BaseModel):
     peso_gramas: Decimal | None = Field(default=None, gt=0)
     ativo: bool | None = None
 
-    receita: list[ProdutoInsumoCreate] | None = None
+    formulas: list[ProdutoInsumoCreate] | None = None
 
 
 class ProdutoPublic(BaseModel):
@@ -121,6 +128,7 @@ class ProdutoListItemAdmin(BaseModel):
     unidades_por_caixa: int
     peso_gramas: Decimal | None
     estoque_minimo: int | None = None
+    formulas: list[ProdutoInsumoResponse] = Field(default_factory=list)
 
 
 class ProdutoListItemPublic(BaseModel):
@@ -177,7 +185,7 @@ class UploadedImage(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
-    redirect_url: str = "http://localhost:5173/reset-password"
+    redirect_url: str = 'http://localhost:5173/reset-password'
 
 
 class ResetPasswordRequest(BaseModel):

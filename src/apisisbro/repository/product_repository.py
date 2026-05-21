@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from apisisbro.models.models import Insumo, Produto, ProdutoInsumo
 from apisisbro.repository.base_repository import BaseRepository
@@ -21,12 +22,32 @@ class ProductRepository(BaseRepository[Produto]):
 
     async def get_product_by_filter(self, filter: FilterProduct) -> Sequence[Produto]:
         filters = filter.model_dump(exclude={'offset', 'limit'}, exclude_none=True)
-        return await self.get_all_by_filter(
-            filters,
-            like_fields={'nome'},
-            limit=filter.limit,
-            offset=filter.offset,
+        query = select(Produto).options(selectinload(Produto.formulas))
+        like_fields = {'nome'}
+
+        for field, value in filters.items():
+            if not hasattr(Produto, field):
+                raise AttributeError(f"{Produto.__name__} não possui o campo '{field}'")
+
+            column = getattr(Produto, field)
+            if field in like_fields and isinstance(value, str):
+                query = query.where(column.ilike(f'%{value}%'))
+            else:
+                query = query.where(column == value)
+
+        result = await self.session.scalars(
+            query.offset(filter.offset).limit(filter.limit)
         )
+        return result.all()
+
+    async def get_all(self, limit: int = 10, offset: int = 0) -> Sequence[Produto]:
+        result = await self.session.scalars(
+            select(Produto)
+            .options(selectinload(Produto.formulas))
+            .limit(limit)
+            .offset(offset)
+        )
+        return result.all()
 
     async def update_image(self, bucket: str, path: str, product: Produto) -> Produto:
         product.imagem_bucket = bucket
@@ -72,3 +93,10 @@ class ProductRepository(BaseRepository[Produto]):
         await self.session.flush()
         await self.session.refresh(db_product)
         return db_product
+
+    async def get_by_id_with_formulas(self, id: int) -> Produto | None:
+        return await self.session.scalar(
+            select(Produto)
+            .options(selectinload(Produto.formulas))
+            .where(Produto.id == id)
+        )
