@@ -4,7 +4,7 @@ from http import HTTPStatus
 from fastapi import HTTPException
 
 from apisisbro.models.models import Insumo
-from apisisbro.repository.insumo_repository import InsumoRepository
+from apisisbro.repository import InsumoRepository
 from apisisbro.schemas.producao_schema import FilterInsumo, InsumoCreate, InsumoUpdate
 
 

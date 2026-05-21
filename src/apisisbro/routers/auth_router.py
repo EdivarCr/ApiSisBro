@@ -103,4 +103,5 @@ def recover_password(request: ForgotPasswordRequest):
 @router.post('/reset-password')
 def reset_password(request: ResetPasswordRequest):
     return update_password(
-        request.access_token, request.refresh_token, request.new_password)
+        request.access_token, request.refresh_token, request.new_password
+    )
