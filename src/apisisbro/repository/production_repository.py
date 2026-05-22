@@ -42,3 +42,16 @@ class ProductionRepository(BaseRepository[Producao]):
         )
         result = await self.session.scalar(query)
         return result
+
+    async def update_production(self, producao: Producao) -> Producao:
+        await self.session.flush()
+
+        query = (
+            select(Producao)
+            .options(selectinload(Producao.produto).selectinload(Produto.formulas))
+            .where(Producao.id == producao.id)
+        )
+
+        result = await self.session.scalar(query)
+
+        return result

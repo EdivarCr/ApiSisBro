@@ -39,9 +39,7 @@ def get_entrada_insumo_service(
     return EntradaInsumoService(repo, repoInsumo)
 
 
-EntradaInsumoServideDep = Annotated[
-    EntradaInsumoService, Depends(get_entrada_insumo_service)
-]
+EntradaInsumoServideDep = Annotated[EntradaInsumoService, Depends(get_entrada_insumo_service)]
 
 
 def get_production_repository(db: SessionDep) -> ProductionRepository:
@@ -55,8 +53,9 @@ def get_product_repository(db: SessionDep) -> ProductRepository:
 def get_production_service(
     repo: Annotated[ProductionRepository, Depends(get_production_repository)],
     repoProduct: Annotated[ProductRepository, Depends(get_product_repository)],
+    db: SessionDep,
 ) -> ProductionService:
-    return ProductionService(repo, repoProduct)
+    return ProductionService(repo, repoProduct, db)
 
 
 ProductionServiceDep = Annotated[ProductionService, Depends(get_production_service)]
