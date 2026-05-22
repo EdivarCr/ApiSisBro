@@ -1,7 +1,8 @@
+import re
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from apisisbro.models.models import TipoProduto
 
@@ -20,7 +21,16 @@ class UserPublic(BaseModel):
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, description='a senha dever no min 8 caracteres')
+
+    @field_validator('password')
+    @classmethod
+    def validation_passwordo(cls, value: str) -> str:
+
+        if not re.search(r'[@#$%\^&*.]', value):
+            raise ValueError('Senha deve ter um caractere especial')
+
+        return value
 
 
 class Token(BaseModel):
@@ -56,9 +66,7 @@ class ProdutoBase(BaseModel):
     validade_meses: int = Field(default=0, ge=0)
     unidades_por_caixa: int = Field(default=1, ge=1)
 
-    peso_gramas: Decimal | None = Field(
-        default=None, gt=0, max_digits=10, decimal_places=2
-    )
+    peso_gramas: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2)
 
 
 class ProdutoCreate(ProdutoBase):

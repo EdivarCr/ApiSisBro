@@ -10,6 +10,7 @@ from apisisbro.schemas.producao_schema import (
     ProducaoCreate,
     ProducaoListResponse,
     ProducaoResponse,
+    ProducaoUpdate,
 )
 
 Current_User = Annotated[
@@ -39,3 +40,10 @@ async def get_producuctions(
 ):
     producao = await service.list_all(limit, offset)
     return {'producao': list(producao), 'ofsset': offset, 'limit': limit}
+
+
+@router.patch('/', status_code=HTTPStatus.OK, response_model=ProducaoResponse)
+async def update_production(
+    service: ProductionServiceDep, payload: ProducaoUpdate, producao_id: int
+):
+    return await service.update(payload, producao_id)
