@@ -96,9 +96,7 @@ class FilterEntradaInsumo(FilterPage):
 
 class ProducaoBase(BaseModel):
     produto_id: int
-    quantidade: int = Field(
-        gt=0, description='Quantidade de unidades/frascos produzidos'
-    )
+    quantidade: int = Field(gt=0, description='Quantidade de unidades/frascos produzidos')
     validade: date
 
 
@@ -124,3 +122,16 @@ class ProducaoListResponse(BaseModel):
     producao: list[ProducaoResponse]
     offset: int = 0
     limit: int = 10
+
+
+class ProducaoUpdate(BaseModel):
+    validade: date | None = None
+    status: StatusLote | None = None
+    quantidade: int | None = None
+
+
+class FilterProducao(FilterPage):
+    nome: str | None = Field(default=None, min_length=3)
+    quantidade: int | None = Field(None, gt=0)
+    data_inicio: date | None = None
+    data_fim: date | None = None
