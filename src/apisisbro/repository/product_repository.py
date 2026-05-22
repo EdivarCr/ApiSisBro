@@ -37,15 +37,12 @@ class ProductRepository(BaseRepository[Produto]):
 
         result = await self.session.scalars(
             query.offset(filter.offset).limit(filter.limit)
-        )
+            )
         return result.all()
 
     async def get_all(self, limit: int = 10, offset: int = 0) -> Sequence[Produto]:
         result = await self.session.scalars(
-            select(Produto)
-            .options(selectinload(Produto.formulas))
-            .limit(limit)
-            .offset(offset)
+            select(Produto).options(selectinload(Produto.formulas)).limit(limit).offset(offset)
         )
         return result.all()
 
@@ -59,29 +56,29 @@ class ProductRepository(BaseRepository[Produto]):
         return product
 
     async def create_product_with_recipe(
-        self, product: ProdutoCreate, user_id: int
-    ) -> Produto:
-        insumo_ids = [item.insumo_id for item in product.receita]
+            self,
+            product: ProdutoCreate,
+            user_id: int
+            ) -> Produto:
+        insumo_ids = [item.insumo_id for item in product.formulas]
         unique_ids = set(insumo_ids)
 
         if len(unique_ids) != len(insumo_ids):
-            raise ValueError('A receita não pode conter insumos repetidos.')
+            raise ValueError('A formula não pode conter insumos repetidos.')
 
         existing_ids = set(
-            await self.session.scalars(
-                select(Insumo.id).where(Insumo.id.in_(unique_ids))
-            )
+            await self.session.scalars(select(Insumo.id).where(Insumo.id.in_(unique_ids)))
         )
         missing_ids = sorted(unique_ids - existing_ids)
         if missing_ids:
             raise ValueError(f'Insumos não encontrados: {missing_ids}')
 
-        product_data = product.model_dump(exclude={'receita'})
+        product_data = product.model_dump(exclude={'formulas'})
         db_product = Produto(**product_data, criador_id=user_id)
         self.session.add(db_product)
         await self.session.flush()
 
-        for item in product.receita:
+        for item in product.formulas:
             self.session.add(
                 ProdutoInsumo(
                     produto_id=db_product.id,
@@ -96,7 +93,6 @@ class ProductRepository(BaseRepository[Produto]):
 
     async def get_by_id_with_formulas(self, id: int) -> Produto | None:
         return await self.session.scalar(
-            select(Produto)
-            .options(selectinload(Produto.formulas))
-            .where(Produto.id == id)
+            select(Produto).options(
+                selectinload(Produto.formulas)).where(Produto.id == id)
         )
