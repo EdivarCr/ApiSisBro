@@ -61,7 +61,7 @@ def client(session):
         return session
 
     with TestClient(app) as client:
-        app.dependency_override[get_session] = get_session_test
+        app.dependency_overrides[get_session] = get_session_test
         yield client
 
 

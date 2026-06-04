@@ -39,7 +39,8 @@ def get_entrada_insumo_service(
     return EntradaInsumoService(repo, repoInsumo)
 
 
-EntradaInsumoServideDep = Annotated[EntradaInsumoService, Depends(get_entrada_insumo_service)]
+EntradaInsumoServideDep = Annotated[EntradaInsumoService, Depends(
+    get_entrada_insumo_service)]
 
 
 def get_production_repository(db: SessionDep) -> ProductionRepository:

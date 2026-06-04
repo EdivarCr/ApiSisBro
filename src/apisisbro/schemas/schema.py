@@ -66,7 +66,12 @@ class ProdutoBase(BaseModel):
     validade_meses: int = Field(default=0, ge=0)
     unidades_por_caixa: int = Field(default=1, ge=1)
 
-    peso_gramas: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=2)
+    peso_gramas: Decimal | None = Field(
+        default=None,
+        gt=0,
+        max_digits=10,
+        decimal_places=2
+        )
 
 
 class ProdutoCreate(ProdutoBase):
