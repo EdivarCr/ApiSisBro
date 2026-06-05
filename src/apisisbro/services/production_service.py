@@ -95,7 +95,7 @@ class ProductionService:
                 if qtd_necessaria > insumo_obj.quantidade_estoque:
                     raise HTTPException(
                         status_code=HTTPStatus.BAD_REQUEST,
-                        detail=f'Estoque insuficiente para o insumo ID {insumo_id}. '
+                        detail=f'Estoque insuficiente para o insumo ID {insumo_obj.nome}.'
                         f'Necessário: {qtd_necessaria},'
                         f'Disponível: {insumo_obj.quantidade_estoque}',
                     )
