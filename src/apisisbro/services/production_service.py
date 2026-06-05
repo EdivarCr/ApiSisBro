@@ -12,9 +12,10 @@ from apisisbro.schemas.producao_schema import ProducaoCreate, ProducaoUpdate
 
 class ProductionService:
     def __init__(
-        self, repo: ProductionRepository,
+        self,
+        repo: ProductionRepository,
         repoProduct: ProductRepository,
-        repoDb: AsyncSession
+        repoDb: AsyncSession,
     ):
 
         self.repo = repo
@@ -140,7 +141,7 @@ class ProductionService:
             if delta_quantidade != 0:
                 product = await self.repoProduct.get_by_id_with_formulas(
                     production.produto_id
-                    )
+                )
                 custo_delta = await self._validar_e_abater_estoque(
                     product.formulas, delta_quantidade, payload.quantidade
                 )

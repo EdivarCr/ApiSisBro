@@ -18,9 +18,7 @@ class ProductService:
         existing = await self.repo.get_product_by_name(product.nome)
 
         if existing is not None:
-            raise HTTPException(
-                status_code=HTTPStatus.CONFLICT, detail='already exists'
-            )
+            raise HTTPException(status_code=HTTPStatus.CONFLICT, detail='already exists')
 
         try:
             return await self.repo.create_product_with_recipe(product, user.id)

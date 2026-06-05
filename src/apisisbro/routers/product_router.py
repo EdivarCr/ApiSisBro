@@ -41,9 +41,7 @@ async def create_product(
     return await service.create(product, user)
 
 
-@router.post(
-    '/imagem_produto', status_code=HTTPStatus.CREATED, response_model=ProdutoOut
-)
+@router.post('/imagem_produto', status_code=HTTPStatus.CREATED, response_model=ProdutoOut)
 async def upload_image(
     service: Product_Service,
     id_produto: int,

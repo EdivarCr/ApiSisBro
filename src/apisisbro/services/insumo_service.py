@@ -22,9 +22,7 @@ class InsumoService:
         existing = await self.repo.get_insumo_by_name(insumoCreate.nome)
 
         if existing is not None:
-            raise HTTPException(
-                status_code=HTTPStatus.CONFLICT, detail='already exists'
-            )
+            raise HTTPException(status_code=HTTPStatus.CONFLICT, detail='already exists')
         db_insumo = Insumo(**insumoCreate.model_dump())
         return await self.repo.create(db_insumo)
 

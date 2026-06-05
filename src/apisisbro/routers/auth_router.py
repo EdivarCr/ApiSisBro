@@ -42,9 +42,7 @@ async def callback(code: str, db: Session):
     try:
         _, access_token = await exchange_code_and_get_or_create_user(code, db)
     except ValueError as err:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail=str(err)
-        ) from err
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(err)) from err
 
     response = RedirectResponse(url='/auth/me')
     response.set_cookie(

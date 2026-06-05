@@ -17,9 +17,7 @@ async def test_create_user(session: AsyncSession):
     session.add(user)
     await session.commit()
 
-    user_query = await session.scalar(
-        select(User).where(User.email == 'teste@teste.com')
-    )
+    user_query = await session.scalar(select(User).where(User.email == 'teste@teste.com'))
 
     assert user_query is not None
     assert user_query.id is not None

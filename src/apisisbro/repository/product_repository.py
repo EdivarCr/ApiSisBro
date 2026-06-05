@@ -37,12 +37,15 @@ class ProductRepository(BaseRepository[Produto]):
 
         result = await self.session.scalars(
             query.offset(filter.offset).limit(filter.limit)
-            )
+        )
         return result.all()
 
     async def get_all(self, limit: int = 10, offset: int = 0) -> Sequence[Produto]:
         result = await self.session.scalars(
-            select(Produto).options(selectinload(Produto.formulas)).limit(limit).offset(offset)
+            select(Produto)
+            .options(selectinload(Produto.formulas))
+            .limit(limit)
+            .offset(offset)
         )
         return result.all()
 
@@ -56,10 +59,8 @@ class ProductRepository(BaseRepository[Produto]):
         return product
 
     async def create_product_with_recipe(
-            self,
-            product: ProdutoCreate,
-            user_id: int
-            ) -> Produto:
+        self, product: ProdutoCreate, user_id: int
+    ) -> Produto:
         insumo_ids = [item.insumo_id for item in product.formulas]
         unique_ids = set(insumo_ids)
 
@@ -93,6 +94,7 @@ class ProductRepository(BaseRepository[Produto]):
 
     async def get_by_id_with_formulas(self, id: int) -> Produto | None:
         return await self.session.scalar(
-            select(Produto).options(
-                selectinload(Produto.formulas)).where(Produto.id == id)
+            select(Produto)
+            .options(selectinload(Produto.formulas))
+            .where(Produto.id == id)
         )
