@@ -5,12 +5,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apisisbro.core.database import get_session
 from apisisbro.repository import (
+    ClienteRepository,
     EntradaInsumoRepository,
     InsumoRepository,
     ProductionRepository,
     ProductRepository,
 )
-from apisisbro.services import EntradaInsumoService, InsumoService, ProductionService
+from apisisbro.services import (
+    ClientService,
+    EntradaInsumoService,
+    InsumoService,
+    ProductionService,
+)
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
@@ -39,8 +45,9 @@ def get_entrada_insumo_service(
     return EntradaInsumoService(repo, repoInsumo)
 
 
-EntradaInsumoServideDep = Annotated[EntradaInsumoService, Depends(
-    get_entrada_insumo_service)]
+EntradaInsumoServideDep = Annotated[
+    EntradaInsumoService, Depends(get_entrada_insumo_service)
+]
 
 
 def get_production_repository(db: SessionDep) -> ProductionRepository:
@@ -60,3 +67,16 @@ def get_production_service(
 
 
 ProductionServiceDep = Annotated[ProductionService, Depends(get_production_service)]
+
+
+def get_client_repository(db: SessionDep) -> ClienteRepository:
+    return ClienteRepository(db)
+
+
+def get_client_service(
+    repo: Annotated[ClienteRepository, Depends(get_client_repository)],
+) -> ClientService:
+    return ClientService(repo)
+
+
+ClientServiceDep = Annotated[ClientService, Depends(get_client_service)]

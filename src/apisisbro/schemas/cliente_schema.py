@@ -16,15 +16,11 @@ class ClienteCreate(BaseModel):
 
 
 class ClienteUpdate(ClienteCreate):
-    name: str | None = Field(
-        ...,
-        default=None,
-        max_length=120)
+    name: str | None = Field(default=None, max_length=120)
     tipo: TipoCliente | None = None
     identificador: str | None = Field(
-        ...,
-        default=None,
-        description='CPF ou CNPJ apenas números')
+        default=None, description='CPF ou CNPJ apenas números'
+    )
     telefone: str | None = None
     email: EmailStr | None = None
     endereco: str | None = None
@@ -43,3 +39,21 @@ class ClienteResponse(BaseModel):
     ultima_compra: date | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ClientePaginationResponse(BaseModel):
+    costumers: list[ClienteResponse]
+    offset: int
+    limit: int
+
+
+class FilterPage(BaseModel):
+    offset: int = 0
+    limit: int = 10
+
+
+class FilterClienteResponse(FilterPage):
+    name: str | None = Field(default=None, min_length=3)
+    tipo: TipoCliente | None = None
+    identificador: str | None = Field(default=None, min_length=3)
+    endereco: str | None = Field(default=None, min_length=3)
