@@ -13,7 +13,14 @@ from apisisbro.app import app
 from apisisbro.core.auth import get_curren_user
 from apisisbro.core.database import get_session
 from apisisbro.core.settings import settings
-from apisisbro.models.models import Cliente, TipoCliente, User, table_registry
+from apisisbro.models.models import (
+    Cliente,
+    PontoDeVenda,
+    TipoCliente,
+    TipoZona,
+    User,
+    table_registry,
+)
 
 fake = Faker()
 
@@ -41,6 +48,26 @@ class UserFactory(factory.Factory):
         return jwt.encode(
             payload, settings.SUPABASE_JWT_SECRET, algorithm=settings.ALGORITHM
         )
+
+
+class PvdFactory(factory.Factory):
+    class Meta:
+        model = PontoDeVenda
+
+    id_cliente = None
+    name = factory.Sequence(lambda n: f'Pvd{fake.company()[:20]}')
+    tipo_zona = factory.Iterator([
+        TipoZona.ZONA_NORTE,
+        TipoZona.ZONA_SUL,
+        TipoZona.ZONA_LESTE,
+        TipoZona.ZONA_OESTE,
+    ])
+    endereco = factory.LazyAttribute(lambda _: fake.address())
+    telefone = factory.LazyAttribute(lambda _: fake.phone_number()[:20])
+    instagram = factory.LazyAttribute(lambda n: f'{n.name.lower().replace(" ", "")[:20]}')
+    google_maps_url = factory.LazyAttribute(lambda _: fake.url())
+    latitude = factory.LazyAttribute(lambda _: str(fake.latitude()))
+    longitude = factory.LazyAttribute(lambda _: str(fake.longitude()))
 
 
 class ClienteCnpjFactory(factory.Factory):
@@ -141,3 +168,8 @@ async def other_user(session):
 @pytest.fixture
 def cliente_cnpj_factory():
     return ClienteCnpjFactory
+
+
+@pytest.fixture
+def pvd_cliente():
+    return PvdFactory

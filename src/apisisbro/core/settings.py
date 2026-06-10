@@ -42,6 +42,7 @@ class Settings(BaseSettings):
         """Verifica se está em produção."""
         return self.APP_ENV == 'production'
 
+    @staticmethod
     def get_password_hash(password: str):
         return pwd_context.hash(password)
 

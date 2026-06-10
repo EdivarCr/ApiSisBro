@@ -11,6 +11,7 @@ from apisisbro.routers import (
     insumo_router,
     product_router,
     production_router,
+    pvd_router,
     user_router,
 )
 
@@ -35,3 +36,4 @@ app.include_router(insumo_router.router)
 app.include_router(entrada_insumo_router.router)
 app.include_router(production_router.router)
 app.include_router(client_router.router)
+app.include_router(pvd_router.router)

@@ -10,12 +10,14 @@ from apisisbro.repository import (
     InsumoRepository,
     ProductionRepository,
     ProductRepository,
+    PvdRepository,
 )
 from apisisbro.services import (
     ClientService,
     EntradaInsumoService,
     InsumoService,
     ProductionService,
+    PvdService,
 )
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
@@ -80,3 +82,16 @@ def get_client_service(
 
 
 ClientServiceDep = Annotated[ClientService, Depends(get_client_service)]
+
+
+def get_pvd_repository(db: SessionDep) -> PvdRepository:
+    return PvdRepository(db)
+
+
+def get_pvd_service(
+    repo: Annotated[PvdRepository, Depends(get_pvd_repository)],
+) -> PvdService:
+    return PvdService(repo)
+
+
+PvdServiceDep = Annotated[PvdService, Depends(get_pvd_service)]
