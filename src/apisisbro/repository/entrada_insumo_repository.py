@@ -19,9 +19,7 @@ class EntradaInsumoRepository(BaseRepository[EntradaInsumo]):
     async def get_insumo_by_name(self, nome: str) -> EntradaInsumo | None:
         return await self.get_by_name(nome, field='nome')
 
-    async def get_by_filter(
-        self, filter: FilterEntradaInsumo
-    ) -> Sequence[EntradaInsumo]:
+    async def get_by_filter(self, filter: FilterEntradaInsumo) -> Sequence[EntradaInsumo]:
         query = select(EntradaInsumo).join(Insumo, EntradaInsumo.insumo_id == Insumo.id)
 
         if filter.insumo_nome is not None:

@@ -16,22 +16,22 @@ async def test_token(mock_supabase, client):
 
     # 2. DISPARA A REQUISIÇÃO PARA A SUA ROTA
     # Aqui você está testando o comportamento real da sua API
-    response = client.post("/auth/login-by-email", json={
-        "email": "usuario@teste.com",
-        "password": "senhasegura.123"
-    })
+    response = client.post(
+        '/auth/login-by-email',
+        json={'email': 'usuario@teste.com', 'password': 'senhasegura.123'},
+    )
 
     # 3. VALIDA AS RESPOSTAS DA SUA ROTA
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        "access_token": "token12312310401adknaoda.adiadn",
-        "token_type": 'bearer'
-            }
+        'access_token': 'token12312310401adknaoda.adiadn',
+        'token_type': 'bearer',
+    }
 
     # Garante que a sua rota realmente tentou chamar o Supabase com os dados certos
     mock_supabase.auth.sign_in_with_password.assert_called_once_with({
-        "email": "usuario@teste.com",
-        "password": "senhasegura.123"
+        'email': 'usuario@teste.com',
+        'password': 'senhasegura.123',
     })
 
 
@@ -45,17 +45,14 @@ async def test_token_unauthorized(mock_supabase, client):
 
     mock_supabase.auth.sign_in_with_password.return_value = mock_session_response
 
-    response = client.post('/auth/login-by-email', json = {
-        "email": "errorname",
-        "password": "senhasegura.123"
-    })
+    response = client.post(
+        '/auth/login-by-email', json={'email': 'errorname', 'password': 'senhasegura.123'}
+    )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
-    assert response.json() == {
-        'err': 'value error'
-    }
+    assert response.json() == {'err': 'value error'}
 
     mock_supabase.auth.sign_in_with_password.assert_called_once_with({
-        "email": "usuario@teste.com",
-        "password": "senhasegura.123"
+        'email': 'usuario@teste.com',
+        'password': 'senhasegura.123',
     })

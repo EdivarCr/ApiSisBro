@@ -12,9 +12,10 @@ from apisisbro.schemas.producao_schema import ProducaoCreate, ProducaoUpdate
 
 class ProductionService:
     def __init__(
-        self, repo: ProductionRepository,
+        self,
+        repo: ProductionRepository,
         repoProduct: ProductRepository,
-        repoDb: AsyncSession
+        repoDb: AsyncSession,
     ):
 
         self.repo = repo
@@ -95,7 +96,7 @@ class ProductionService:
                 if qtd_necessaria > insumo_obj.quantidade_estoque:
                     raise HTTPException(
                         status_code=HTTPStatus.BAD_REQUEST,
-                        detail=f'Estoque insuficiente para o insumo ID {insumo_id}. '
+                        detail=f'Estoque insuficiente para o insumo ID {insumo_obj.nome}.'
                         f'Necessário: {qtd_necessaria},'
                         f'Disponível: {insumo_obj.quantidade_estoque}',
                     )
@@ -140,7 +141,7 @@ class ProductionService:
             if delta_quantidade != 0:
                 product = await self.repoProduct.get_by_id_with_formulas(
                     production.produto_id
-                    )
+                )
                 custo_delta = await self._validar_e_abater_estoque(
                     product.formulas, delta_quantidade, payload.quantidade
                 )

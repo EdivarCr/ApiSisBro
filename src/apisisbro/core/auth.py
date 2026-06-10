@@ -28,9 +28,7 @@ async def get_curren_user(
             token = credentials.credentials
 
     if not token:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED, detail='Não autenticado'
-        )
+        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail='Não autenticado')
 
     try:
         response = supabase.auth.get_user(token)
@@ -40,9 +38,7 @@ async def get_curren_user(
         ) from err
 
     if not response or not response.user:
-        raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED, detail='user not found'
-        )
+        raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED, detail='user not found')
 
     email = response.user.email
     if not email:

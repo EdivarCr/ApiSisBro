@@ -67,11 +67,8 @@ class ProdutoBase(BaseModel):
     unidades_por_caixa: int = Field(default=1, ge=1)
 
     peso_gramas: Decimal | None = Field(
-        default=None,
-        gt=0,
-        max_digits=10,
-        decimal_places=2
-        )
+        default=None, gt=0, max_digits=10, decimal_places=2
+    )
 
 
 class ProdutoCreate(ProdutoBase):

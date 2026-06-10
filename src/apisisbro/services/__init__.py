@@ -1,3 +1,4 @@
+from .client_service import ClientService
 from .entrada_insumo_service import EntradaInsumoService
 from .insumo_service import InsumoService
 from .product_service import ProductService
@@ -8,4 +9,5 @@ __all__ = [
     'InsumoService',
     'ProductionService',
     'ProductService',
+    'ClientService',
 ]
