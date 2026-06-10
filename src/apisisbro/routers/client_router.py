@@ -18,6 +18,11 @@ Current_User = Annotated[
     Depends(get_curren_user),
 ]
 
+Filter = Annotated[
+    FilterClienteResponse,
+    Depends()
+]
+
 router = APIRouter(
     prefix='/clientes', tags=['cliente'], dependencies=[Depends(get_curren_user)]
 )
@@ -49,6 +54,6 @@ async def list_costumer_for_id(
     '/pesquisa', status_code=HTTPStatus.OK, response_model=ClientePaginationResponse
 )
 async def list_costumer_for_filter(
-    service: ClientServiceDep, payload: FilterClienteResponse
+    service: ClientServiceDep, payload: Filter
 ):
     return await service.get_by_filter(payload)

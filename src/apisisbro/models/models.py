@@ -315,7 +315,7 @@ class PontoDeVenda:
         # preciso saber se o mesmo numero do cliente deve ser no ponto de venda
     )
     instagram: Mapped[str | None] = mapped_column(
-        String(50), default=None, nullable=True, init=False
+        String(50), default=None, nullable=True, init=True
     )
     google_maps_url: Mapped[str | None] = mapped_column(
         String(500), default=None, nullable=True
