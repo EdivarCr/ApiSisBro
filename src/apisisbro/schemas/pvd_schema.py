@@ -41,3 +41,23 @@ class PontoDeVendaResponse(BaseModel):
     ativo: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FilterPage(BaseModel):
+    offset: int = 0
+    limit: int = 10
+
+
+class PontoDeVendaPaginationResponse(FilterPage):
+    pvds: list[PontoDeVendaResponse]
+
+
+class FilterPontoDeVenda(FilterPage):
+    id_cliente: int | None = Field(default=None)
+    name: str | None = Field(default=None, min_length=3)
+    tipo_zona: TipoZona | None = None
+    endereco: str | None = Field(default=None, min_length=3)
+    telefone: str | None = Field(default=None, min_length=3)
+    instagram: str | None = Field(default=None, min_length=3)
+    ultima_reposicao: date | None = None
+    ativo: bool | None = None
