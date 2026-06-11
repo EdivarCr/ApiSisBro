@@ -96,4 +96,4 @@ async def test_listar_todos_pvds(
     lista_pvds = await service.get_all()
 
     assert lista_pvds is not None
-    assert len(lista_pvds) == number
+    assert len(lista_pvds['pvds']) == number
