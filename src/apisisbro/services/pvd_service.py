@@ -32,6 +32,13 @@ class PvdService:
                 detail='Nao existe cliente no sistema',
             )
 
+        if identifier.tipo == 'PESSOA_FISICA':
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST,
+                detail='Nao é possivel criar umm ponto de venda com cliente'
+                'pessoa fisica'
+            )
+
         if payload.google_maps_url:
             query_map = select(PontoDeVenda).where(
                 PontoDeVenda.google_maps_url == payload.google_maps_url
