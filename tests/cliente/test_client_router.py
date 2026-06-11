@@ -90,3 +90,29 @@ async def test_route_deve_listar_cliente_por_filtro(
     assert 'costumers' in json_data
     assert len(json_data['costumers']) > 0
     assert json_data['costumers'][0]['name'] == cliente.name
+
+
+@pytest.mark.asyncio
+async def test_atualiza_cliente(
+    client, user, logar_usuario, cliente_cnpj_factory, session
+):
+    logar_usuario(user)
+
+    cliente = cliente_cnpj_factory.build()
+    session.add(cliente)
+    await session.commit()
+    number = '019239123'
+    payload = {
+        'name': 'teste',
+        'endereco': 'teste',
+        'identificador': number
+    }
+    response = client.patch(f'/clientes/{cliente.id}/', json=payload)
+
+    assert response.status_code == HTTPStatus.OK
+
+    json_data = response.json()
+
+    assert json_data['name'] == payload['name']
+    assert json_data['endereco'] == payload['endereco']
+    assert json_data['identificador'] == payload['identificador']
