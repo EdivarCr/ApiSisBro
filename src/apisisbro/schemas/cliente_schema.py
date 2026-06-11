@@ -34,9 +34,9 @@ class ClienteResponse(BaseModel):
     telefone: str
     email: str
     endereco: str
-    total_compras: Decimal
-    quantidade_compras: int
-    ultima_compra: date | None
+    total_compras: Decimal = Field(default=Decimal('0.00'), examples=[Decimal('0.00')])
+    quantidade_compras: int = Field(default=0)
+    ultima_compra: date | None = Field(default=None, examples=[None])
 
     model_config = ConfigDict(from_attributes=True)
 

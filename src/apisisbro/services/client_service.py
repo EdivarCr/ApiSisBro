@@ -6,7 +6,11 @@ from sqlalchemy import select
 
 from apisisbro.models.models import Cliente
 from apisisbro.repository import ClienteRepository
-from apisisbro.schemas.cliente_schema import ClienteCreate, FilterClienteResponse
+from apisisbro.schemas.cliente_schema import (
+    ClienteCreate,
+    ClienteUpdate,
+    FilterClienteResponse,
+)
 
 
 class ClientService:
@@ -61,3 +65,24 @@ class ClientService:
             'limit': limit,
             'offset': offset
         }
+        if not existing:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='Cliente não encontrado com os filtros fornecidos',
+            )
+
+        return existing
+
+    async def update(self, client_id: int, payload: ClienteUpdate) -> Cliente:
+        client = await self.repo.get_by_id(client_id)
+
+        if client is None:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='produto nao encontrado',
+            )
+
+        for field, value in payload.model_dump(exclude_unset=True).items():
+            setattr(client, field, value)
+
+        return await self.repo.update(client)

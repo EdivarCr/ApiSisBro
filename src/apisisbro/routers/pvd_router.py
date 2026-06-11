@@ -19,10 +19,7 @@ Current_User = Annotated[
     Depends(get_curren_user),
 ]
 
-Filter = Annotated[
-    FilterPontoDeVenda,
-    Depends()
-]
+Filter = Annotated[FilterPontoDeVenda, Depends()]
 
 router = APIRouter(prefix='/pvd', tags=['pvd'], dependencies=[Depends(get_curren_user)])
 
@@ -47,7 +44,7 @@ async def list_pvd(
 async def list_pvd_for_filter(
     service: PvdServiceDep,
     payload: Filter,
-    ):
+):
     return await service.get_by_filter(payload)
 
 
@@ -59,8 +56,6 @@ async def list_pvd_for_id(
     return await service.get_by_id(pvd_id)
 
 
-@router.patch(
-    '/{pvd_id}', status_code=HTTPStatus.OK, response_model=PontoDeVendaResponse
-)
+@router.patch('/{pvd_id}', status_code=HTTPStatus.OK, response_model=PontoDeVendaResponse)
 async def update_pvd(service: PvdServiceDep, pvd_id: int, payload: PontoDeVendaUpdate):
     return await service.update(pvd_id, payload)

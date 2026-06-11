@@ -111,7 +111,7 @@ async def test_route_deve_listar_pvd_por_filtro_com_sucesso(
     }
 
     response = client.get('/pvd/pesquisa', params=payload)
-    print("\n[ERRO 422 DETALHADO]:", response.json())
+    print('\n[ERRO 422 DETALHADO]:', response.json())
     assert response.status_code == HTTPStatus.OK
     json_data = response.json()
 

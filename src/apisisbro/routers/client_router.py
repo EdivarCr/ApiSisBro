@@ -10,6 +10,7 @@ from apisisbro.schemas.cliente_schema import (
     ClienteCreate,
     ClientePaginationResponse,
     ClienteResponse,
+    ClienteUpdate,
     FilterClienteResponse,
 )
 
@@ -18,10 +19,7 @@ Current_User = Annotated[
     Depends(get_curren_user),
 ]
 
-Filter = Annotated[
-    FilterClienteResponse,
-    Depends()
-]
+Filter = Annotated[FilterClienteResponse, Depends()]
 
 router = APIRouter(
     prefix='/clientes', tags=['cliente'], dependencies=[Depends(get_curren_user)]
@@ -44,9 +42,7 @@ async def list_costumer(
 @router.get(
     '/pesquisa', status_code=HTTPStatus.OK, response_model=ClientePaginationResponse
 )
-async def list_costumer_for_filter(
-    service: ClientServiceDep, payload: Filter
-):
+async def list_costumer_for_filter(service: ClientServiceDep, payload: Filter):
     return await service.get_by_filter(payload)
 
 @router.get('/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse)
@@ -55,3 +51,13 @@ async def list_costumer_for_id(
     client_id: int,
 ):
     return await service.get_by_id(client_id)
+
+@router.patch(
+    '/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse
+)
+async def update_client(
+    service: ClientServiceDep,
+    payload: ClienteUpdate,
+    client_id: int,
+):
+    return await service.update(client_id, payload)
