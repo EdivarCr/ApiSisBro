@@ -56,10 +56,8 @@ class ClientService:
             offset=offset,
         )
 
-        if not existing:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail='Cliente não encontrado com os filtros fornecidos',
-            )
-
-        return existing
+        return {
+            'costumers': existing if existing else [],
+            'limit': limit,
+            'offset': offset
+        }
