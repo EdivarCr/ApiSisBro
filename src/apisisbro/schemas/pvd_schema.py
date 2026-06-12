@@ -40,6 +40,8 @@ class PontoDeVendaResponse(BaseModel):
     google_maps_url: str | None
     ultima_reposicao: date | None
     ativo: bool
+    criado_em: date
+    atualizado_em: date | None
 
     model_config = ConfigDict(from_attributes=True)
 
