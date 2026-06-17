@@ -32,7 +32,28 @@ class StatusLote(StrEnum):
     ATIVO = 'ATIVO'
     ESGOTADO = 'ESGOTADO'
     VENCIDO = 'VENCIDO'
-    CANCELADO = 'CANCELADO'
+
+
+class StatusClientePvd(StrEnum):
+    ATIVO = 'ATIVO'
+    INATIVO = 'INATIVO'
+
+
+class FormaPagamento(StrEnum):
+    PIX = 'PIX'
+    DINHEIRO = 'DINHEIRO'
+    CARTAO_CREDITO = 'CARTAO_CREDITO'
+    CARTAO_DEBITO = 'CARTAO_DEBITO'
+
+
+class StatusPagamento(StrEnum):
+    PAGO = 'PAGO'
+    PENDENTE = 'PENDENTE'  # Para casos de venda "fiado" / a prazo
+
+
+class TipoVenda(StrEnum):
+    VAREJO = 'VAREJO'
+    ATACADO = 'ATACADO'
 
 
 class TipoCliente(StrEnum):
@@ -135,6 +156,10 @@ class Produto:
     )
 
     formulas: Mapped[list['ProdutoInsumo']] = relationship(
+        back_populates='produto', init=False
+    )
+
+    itens_venda: Mapped[list['ItemVenda']] = relationship(
         back_populates='produto', init=False
     )
 
@@ -294,6 +319,7 @@ class Cliente:
     pvds: Mapped[list['PontoDeVenda']] = relationship(
         init=False, back_populates='cliente', cascade='all, delete-orphan'
     )
+    vendas: Mapped[list['Venda']] = relationship(init=False, back_populates='cliente')
 
 
 @table_registry.mapped_as_dataclass
@@ -331,3 +357,64 @@ class PontoDeVenda:
         init=False, default=func.now(), onupdate=func.now()
     )
     cliente: Mapped['Cliente'] = relationship(init=False, back_populates='pvds')
+    vendas: Mapped['Venda'] = relationship(init=False, back_populates='pvd')
+
+
+@table_registry.mapped_as_dataclass
+class Venda:
+    __tablename__ = 'vendas'
+
+    # 1. Campos sem valor padrão (Obrigatórios) vêm primeiro:
+    id: Mapped[int] = mapped_column(primary_key=True, init=False)
+    forma_pagamento: Mapped[FormaPagamento] = mapped_column(String(30))
+    status_pagamento: Mapped[StatusPagamento] = mapped_column(
+        String(20), default=StatusPagamento.PAGO
+    )
+
+    # 2. Campos com valor padrão (Opcionais) vêm depois:
+    cliente_id: Mapped[int | None] = mapped_column(
+        ForeignKey('cliente.id'), nullable=True, default=None
+    )
+    pvd_id: Mapped[int | None] = mapped_column(
+        ForeignKey('ponto_de_venda.id'), nullable=True, default=None
+    )
+    tipo_venda: Mapped[TipoVenda] = mapped_column(String(20), default=TipoVenda.ATACADO)
+    valor_total: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=Decimal('0.00'))
+
+    data_venda: Mapped[date] = mapped_column(default=date.today)
+    data_pagamento: Mapped[date | None] = mapped_column(nullable=True, default=None)
+    deleted_at: Mapped[date | None] = mapped_column(nullable=True, default=None)
+
+    # 3. Relacionamentos (Sempre com init=False para saírem do construtor da Dataclass):
+    itens: Mapped[list['ItemVenda']] = relationship(
+        'ItemVenda', back_populates='venda', cascade='all, delete-orphan', init=False
+    )
+    cliente: Mapped['Cliente'] = relationship(back_populates='vendas', init=False)
+    pvd: Mapped['PontoDeVenda'] = relationship(back_populates='vendas', init=False)
+
+
+@table_registry.mapped_as_dataclass
+class ItemVenda:
+    __tablename__ = 'itens_venda'
+
+    # 1. Campos sem valor padrão (Obrigatórios) vêm primeiro:
+    id: Mapped[int] = mapped_column(primary_key=True, init=False)
+    venda_id: Mapped[int] = mapped_column(
+        ForeignKey('vendas.id', ondelete='CASCADE'), init=False
+    )
+    produto_id: Mapped[int] = mapped_column(ForeignKey('produtos.id'))
+
+    preco_unitario: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    subtotal: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+
+    # 2. Campos com valor padrão (Opcionais) vêm depois:
+    quantidade: Mapped[int] = mapped_column(default=1)
+    unidade_medida: Mapped[UnidadeMedida] = mapped_column(
+        String(20), default=UnidadeMedida.UN
+    )
+
+    # 3. Relacionamentos (Sempre com init=False por último):
+    venda: Mapped['Venda'] = relationship('Venda', back_populates='itens', init=False)
+    produto: Mapped['Produto'] = relationship(
+        'Produto', back_populates='itens_venda', init=False
+    )
