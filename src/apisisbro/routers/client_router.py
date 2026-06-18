@@ -55,9 +55,7 @@ async def list_costumer_for_filter(service: ClientServiceDep, payload: Filter):
     return await service.get_by_filter(payload)
 
 
-@router.patch(
-    '/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse
-)
+@router.patch('/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse)
 async def update_client(
     service: ClientServiceDep,
     payload: ClienteUpdate,

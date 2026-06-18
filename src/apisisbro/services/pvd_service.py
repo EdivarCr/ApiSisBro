@@ -35,8 +35,7 @@ class PvdService:
         if identifier.tipo == 'PESSOA_FISICA':
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST,
-                detail='Nao é possivel criar umm ponto de venda com cliente'
-                'pessoa fisica'
+                detail='Nao é possivel criar umm ponto de venda com clientepessoa fisica',
             )
 
         if payload.google_maps_url:

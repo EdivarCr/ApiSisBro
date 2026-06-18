@@ -46,13 +46,14 @@ async def test_token_unauthorized(mock_supabase, client):
     mock_supabase.auth.sign_in_with_password.return_value = mock_session_response
 
     response = client.post(
-        '/auth/login-by-email', json={'email': 'errorname', 'password': 'senhasegura.123'}
+        '/auth/login-by-email',
+        json={'email': 'error@.com', 'password': 'senhasegura.123'},
     )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
-    assert response.json() == {'err': 'value error'}
+    assert response.json() == {'detail': 'Credenciais inválidas'}
 
     mock_supabase.auth.sign_in_with_password.assert_called_once_with({
-        'email': 'usuario@teste.com',
+        'email': 'error@.com',
         'password': 'senhasegura.123',
     })
