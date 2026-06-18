@@ -4,6 +4,7 @@ from .insumo_service import InsumoService
 from .product_service import ProductService
 from .production_service import ProductionService
 from .pvd_service import PvdService
+from .venda_service import VendaService
 
 __all__ = [
     'EntradaInsumoService',
@@ -12,4 +13,5 @@ __all__ = [
     'ProductService',
     'ClientService',
     'PvdService',
+    'VendaService',
 ]

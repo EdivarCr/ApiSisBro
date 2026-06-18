@@ -13,6 +13,7 @@ from apisisbro.routers import (
     production_router,
     pvd_router,
     user_router,
+    venda_router,
 )
 
 if sys.platform == 'win32':
@@ -37,3 +38,4 @@ app.include_router(entrada_insumo_router.router)
 app.include_router(production_router.router)
 app.include_router(client_router.router)
 app.include_router(pvd_router.router)
+app.include_router(venda_router.router)

@@ -366,7 +366,7 @@ class Venda:
 
     # 1. Campos sem valor padrão (Obrigatórios) vêm primeiro:
     id: Mapped[int] = mapped_column(primary_key=True, init=False)
-    forma_pagamento: Mapped[FormaPagamento] = mapped_column(String(30))
+    forma_pagamento: Mapped[FormaPagamento | None] = mapped_column(String(30))
     status_pagamento: Mapped[StatusPagamento] = mapped_column(
         String(20), default=StatusPagamento.PAGO
     )
@@ -380,6 +380,12 @@ class Venda:
     )
     tipo_venda: Mapped[TipoVenda] = mapped_column(String(20), default=TipoVenda.ATACADO)
     valor_total: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=Decimal('0.00'))
+    valor_subtotal: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), default=Decimal('0.00')
+    )
+    valor_desconto: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), default=Decimal('0.00')
+    )
 
     data_venda: Mapped[date] = mapped_column(default=date.today)
     data_pagamento: Mapped[date | None] = mapped_column(nullable=True, default=None)
