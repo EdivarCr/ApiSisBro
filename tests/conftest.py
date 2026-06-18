@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta, timezone
+from decimal import Decimal
 
 import factory
 import jwt
@@ -16,13 +17,43 @@ from apisisbro.core.settings import settings
 from apisisbro.models.models import (
     Cliente,
     PontoDeVenda,
+    Produto,
     TipoCliente,
+    TipoProduto,
     TipoZona,
     User,
     table_registry,
 )
 
 fake = Faker()
+
+
+class ProdutoFactory(factory.Factory):
+    class Meta:
+        model = Produto
+
+    criador_id = factory.LazyAttribute(lambda o: o.user.id if hasattr(o, 'user') else 1)
+
+    nome = factory.Sequence(lambda n: f'Molho de Pimenta Premium Edição {n}')
+    descricao = 'Molho artesanal produzido com pimentas selecionadas de madrugada.'
+
+    tipo = TipoProduto.MOLHO
+
+    preco_varejo = Decimal('35.00')
+    preco_atacado = Decimal('22.00')
+    nivel_picancia = 5
+    alergenicos = 'Não contém glúten.'
+    tem_carolina_reaper = False
+
+    imagem_bucket = 'produtos-bucket'
+    imagem_path = 'images/molho_reaper.png'
+
+    estoque_minimo = 10
+    validade_meses = 6
+    unidades_por_caixa = 12
+    peso_gramas = Decimal('100.00')
+
+    ativo = True
 
 
 class UserFactory(factory.Factory):
@@ -168,6 +199,11 @@ async def other_user(session):
 @pytest.fixture
 def cliente_cnpj_factory():
     return ClienteCnpjFactory
+
+
+@pytest.fixture
+def produto_factory():
+    return ProdutoFactory
 
 
 @pytest.fixture
