@@ -155,3 +155,13 @@ class ProductionService:
             production.status = payload.status
 
         return await self.repo.update_production(production)
+
+    async def get_lotes_por_produto(self, produto_id: int) -> list[Producao]:
+        produto = self.repoProduct.get_by_id(produto_id)
+
+        if produto is None:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='Insumo nao encontrado'
+            )
+
+        return await self.repo.get_lotes_disponiveis_por_produto(produto_id)

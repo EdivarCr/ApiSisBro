@@ -55,3 +55,13 @@ class ProductionRepository(BaseRepository[Producao]):
         result = await self.session.scalar(query)
 
         return result
+
+    async def get_lotes_disponiveis_por_produto(self, produto_id: int) -> list[Producao]:
+        query = (
+            select(Producao)
+            .where(Producao.produto_id == produto_id, Producao.quantidade > 0)
+            .order_by(Producao.validade.asc())
+        )
+
+        result = await self.session.execute(query)
+        return list(result.scalars().all())
