@@ -102,11 +102,7 @@ async def test_atualiza_cliente(
     session.add(cliente)
     await session.commit()
     number = '019239123'
-    payload = {
-        'name': 'teste',
-        'endereco': 'teste',
-        'identificador': number
-    }
+    payload = {'name': 'teste', 'endereco': 'teste', 'identificador': number}
     response = client.patch(f'/clientes/{cliente.id}/', json=payload)
 
     assert response.status_code == HTTPStatus.OK

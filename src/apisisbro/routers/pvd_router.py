@@ -21,11 +21,13 @@ Current_User = Annotated[
 
 Filter = Annotated[FilterPontoDeVenda, Depends()]
 
-router = APIRouter(prefix='/pvd', tags=['pvd'], dependencies=[Depends(get_curren_user)])
+router = APIRouter(prefix='/pvd', tags=['pvd'])
 
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=PontoDeVendaResponse)
-async def create_pvd(service: PvdServiceDep, payload: PontoDeVendaCreate):
+async def create_pvd(
+    service: PvdServiceDep, payload: PontoDeVendaCreate, user: Current_User
+):
     return await service.create(payload)
 
 
@@ -57,5 +59,7 @@ async def list_pvd_for_id(
 
 
 @router.patch('/{pvd_id}', status_code=HTTPStatus.OK, response_model=PontoDeVendaResponse)
-async def update_pvd(service: PvdServiceDep, pvd_id: int, payload: PontoDeVendaUpdate):
+async def update_pvd(
+    service: PvdServiceDep, pvd_id: int, payload: PontoDeVendaUpdate, user: Current_User
+):
     return await service.update(pvd_id, payload)
