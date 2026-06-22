@@ -46,7 +46,7 @@ async def test_deve_listar_vazio_se_nao_houver_cliente(session: AsyncSession):
     service = ClientService(repo)
 
     clients = await service.get_all()
-    assert len(clients) == 0
+    assert len(clients['costumers']) == 0
 
 
 @pytest.mark.asyncio
@@ -76,6 +76,6 @@ async def test_deve_listar_com_filtro(session: AsyncSession, cliente_cnpj_factor
     await repo.session.commit()
 
     filtro = FilterClienteResponse(name=client.name)
-    return_client = await service.get_by_filter(filtro)
+    return_dict = await service.get_by_filter(filtro)
 
-    assert return_client[0].name == client.name
+    assert return_dict['costumers'][0].name == client.name

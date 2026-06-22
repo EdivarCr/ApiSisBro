@@ -39,6 +39,11 @@ async def list_costumer(
 ):
     return await service.get_all(limit, offset)
 
+@router.get(
+    '/pesquisa', status_code=HTTPStatus.OK, response_model=ClientePaginationResponse
+)
+async def list_costumer_for_filter(service: ClientServiceDep, payload: Filter):
+    return await service.get_by_filter(payload)
 
 @router.get('/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse)
 async def list_costumer_for_id(
@@ -47,15 +52,9 @@ async def list_costumer_for_id(
 ):
     return await service.get_by_id(client_id)
 
-
-@router.get(
-    '/pesquisa', status_code=HTTPStatus.OK, response_model=ClientePaginationResponse
+@router.patch(
+    '/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse
 )
-async def list_costumer_for_filter(service: ClientServiceDep, payload: Filter):
-    return await service.get_by_filter(payload)
-
-
-@router.patch('/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse)
 async def update_client(
     service: ClientServiceDep,
     payload: ClienteUpdate,

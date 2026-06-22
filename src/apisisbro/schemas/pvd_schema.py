@@ -26,6 +26,7 @@ class PontoDeVendaUpdate(BaseModel):
     google_maps_url: str | None = None
     latitude: str | None = None
     longitude: str | None = None
+    ativo: bool | None = None
 
 
 class PontoDeVendaResponse(BaseModel):

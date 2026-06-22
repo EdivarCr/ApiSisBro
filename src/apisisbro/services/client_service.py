@@ -60,6 +60,11 @@ class ClientService:
             offset=offset,
         )
 
+        return {
+            'costumers': existing if existing else [],
+            'limit': limit,
+            'offset': offset
+        }
         if not existing:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
