@@ -67,3 +67,27 @@ class VendaUpdate(BaseModel):
     status_pagamento: StatusPagamento | None = None
     desconto: Decimal | None = Field(default=None, ge=0, le=100)
     data_pagamento: date | None = None
+    cliente_id: int | None = None
+    pvd_id: int | None = None
+    tipo_venda: TipoVenda | None = None
+
+
+class ItemVendaUpdate(BaseModel):
+    produto_id: int | None = None
+    quantidade: int | None = None
+    valor_unitario: Decimal | None = None
+
+
+class FilterPage(BaseModel):
+    offset: int = 0
+    limit: int = 10
+
+
+class FilterVenda(FilterPage):
+    data_inicio: date | None = None
+    data_fim: date | None = None
+    status_pagamento: StatusPagamento | None = None
+    pvd_id: int | None = None
+    cliente_id: int | None = None
+    forma_pagamento: FormaPagamento | None = None
+    tipo_venda: TipoVenda | None = None

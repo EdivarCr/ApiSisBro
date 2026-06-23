@@ -10,9 +10,10 @@ from apisisbro.models.models import Cliente, ItemVenda, Producao, Venda
 from apisisbro.repository import (
     ClienteRepository,
     ProductionRepository,
+    PvdRepository,
     VendaRepository,
 )
-from apisisbro.schemas.venda_schema import VendaCreate, VendaUpdate
+from apisisbro.schemas.venda_schema import FilterVenda, VendaCreate, VendaUpdate
 
 
 class VendaService:
@@ -21,10 +22,12 @@ class VendaService:
         repo: VendaRepository,
         repoPoducao: ProductionRepository,
         repoCliente: ClienteRepository,
+        repoPvd: PvdRepository,
     ):
         self.repo = repo
         self.repo_producao = repoPoducao
         self.repo_cliente = repoCliente
+        self.repo_pvd = repoPvd
 
     async def create(self, payload: VendaCreate) -> Venda:
         cliente = await self.repo_cliente.get_by_id(payload.cliente_id)
@@ -136,6 +139,23 @@ class VendaService:
                 status_code=HTTPStatus.NOT_FOUND, detail='Venda nao encontrada'
             )
 
+        if payload.cliente_id is not None:
+            cliente = await self.repo_cliente.get_by_id(payload.cliente_id)
+            if cliente is None:
+                raise HTTPException(
+                    status_code=HTTPStatus.NOT_FOUND, detail='Cliente nao encontrado'
+                )
+            venda.cliente_id = payload.cliente_id
+
+        if payload.pvd_id is not None:
+            pvd = await self.repo_pvd.get_by_id(payload.pvd_id)
+            if pvd is None:
+                raise HTTPException(
+                    status_code=HTTPStatus.NOT_FOUND,
+                    detail='Ponto de venda nao encontrado',
+                )
+            venda.pvd_id = payload.pvd_id
+
         update_data = payload.model_dump(exclude_unset=True)
 
         if 'desconto' in update_data:
@@ -153,3 +173,20 @@ class VendaService:
             setattr(venda, field, value)
 
         return await self.repo.update(venda)
+
+    async def filtro_vendas(self, filter: FilterVenda) -> dict:
+        filter_dict = filter.model_dump(
+            exclude={"limit", "offset", "data_inicio", "data_fim"},
+            exclude_none=True
+        )
+        result = await self.repo.get_all_by_filter(
+            filters=filter_dict,
+            like_fields={'status_pagamento', 'forma_pagamento',
+            'tipo_venda', 'cliente_id', 'pvd_id'},
+            limit=filter.limit,
+            offset=filter.offset,
+            data_inicio=filter.data_inicio,
+            data_fim=filter.data_fim,
+        )
+
+        return {'itens': result, 'limit': filter.limit, 'offset': filter.offset}
