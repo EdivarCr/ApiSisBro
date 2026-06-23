@@ -24,7 +24,11 @@ app = FastAPI(title='ApiSisBro')
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['http://localhost:5173'],
+    allow_origins=[
+        'http://localhost:5173',   # Acesso do front
+        'http://127.0.0.1:5500',   # Live Server (Formato IP)
+        'http://localhost:5500'    # Live Server (Formato Localhost)
+    ],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],

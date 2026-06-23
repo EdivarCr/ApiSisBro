@@ -65,18 +65,12 @@ class PvdService:
 
         existing = await self.repo.get_all_by_filter(
             filters=filtros_dict,
-            like_fields={'name', 'identificador', 'endereco'},
+            like_fields={'name', 'endereco'},
             limit=limit,
             offset=offset,
         )
 
-        if not existing:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail='Cliente não encontrado com os filtros fornecidos',
-            )
-
-        return {'pvds': existing, 'limit': limit, 'offset': offset}
+        return {'pvds': existing if existing else [], 'limit': limit, 'offset': offset}
 
     async def update(self, pvd_id: int, payload: PontoDeVendaUpdate) -> PontoDeVenda:
         pvd = await self.repo.get_by_id(pvd_id)
