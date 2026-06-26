@@ -25,6 +25,14 @@ class ClienteUpdate(ClienteCreate):
     email: EmailStr | None = None
     endereco: str | None = None
 
+class ClienteVendaResponse(BaseModel):
+    id: int
+    valor_total: Decimal
+    data_venda: date
+    status_pagamento: str
+    tipo_venda: str
+    
+    model_config = ConfigDict(from_attributes=True)
 
 class ClienteResponse(BaseModel):
     id: int
@@ -40,6 +48,8 @@ class ClienteResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class ClienteDetailResponse(ClienteResponse):
+    vendas: list[ClienteVendaResponse] = []
 
 class ClientePaginationResponse(BaseModel):
     costumers: list[ClienteResponse]

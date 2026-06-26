@@ -118,7 +118,13 @@ class VendaService:
         nova_venda.itens = itens_venda_processador
         venda_salva = await self.repo.create(nova_venda)
 
-        return venda_salva
+        cliente.total_compras += venda_salva.valor_total
+        cliente.quantidade_compras += 1
+        cliente.ultima_compra = venda_salva.data_venda
+        
+        await self.repo_cliente.update(cliente)
+
+        return await self.get_by_id(venda_salva.id)
 
     async def get_all(self, limit: int = 10, offset: int = 0) -> dict:
         venda_list = await self.repo.get_all(limit, offset)
