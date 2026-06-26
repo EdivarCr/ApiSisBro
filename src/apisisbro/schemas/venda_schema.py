@@ -29,9 +29,18 @@ class VendaCreate(BaseModel):
     itens: list[ItemVendaCreate] = Field(..., min_length=1)
 
 
+class ItemVendaResponse(BaseModel):
+    id: int
+    produto_id: int
+    quantidade: int
+    preco_unitario: Decimal
+    subtotal: Decimal
+
+    model_config = ConfigDict(from_attributes=True)
+
 class VendaResponse(BaseModel):
     id: int
-    cliente_id: int
+    cliente_id: int | None = None
     pvd_id: int | None = None
     forma_pagamento: FormaPagamento | None = None
     status_pagamento: StatusPagamento
@@ -42,14 +51,9 @@ class VendaResponse(BaseModel):
     data_venda: date
     data_pagamento: date | None = None
 
+    itens: list[ItemVendaResponse] = []
+
     model_config = ConfigDict(from_attributes=True)
-
-
-class ItemVendaResponse(BaseModel):
-    id: int
-    produto_id: int
-    quantidade: int
-    valor_unitario: Decimal
 
 
 class ListVendaResponse(BaseModel):
