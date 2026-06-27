@@ -54,9 +54,17 @@ class BaseRepository[ModelType](ABC):
         like_fields: set[str] | None = None,
         limit: int = 10,
         offset: int = 0,
+        data_inicio=None,
+        data_fim=None,
+        **kwargs,
     ) -> Sequence[ModelType]:
         query = select(self.model)
         like_fields = like_fields or set()
+
+        if data_inicio:
+            query = query.where(self.model.data_venda >= data_inicio)
+        if data_fim:
+            query = query.where(self.model.data_venda <= data_fim)
 
         for field, value in filters.items():
             if value is None:

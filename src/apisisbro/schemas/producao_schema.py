@@ -96,7 +96,7 @@ class FilterEntradaInsumo(FilterPage):
 
 class ProducaoBase(BaseModel):
     produto_id: int
-    quantidade: int = Field(gt=0, description='Quantidade de unidades/frascos produzidos')
+    quantidade: int = Field(ge=0, description='Quantidade de unidades/frascos produzidos')
     validade: date
 
 
@@ -132,6 +132,6 @@ class ProducaoUpdate(BaseModel):
 
 class FilterProducao(FilterPage):
     nome: str | None = Field(default=None, min_length=3)
-    quantidade: int | None = Field(None, gt=0)
+    quantidade: int | None = Field(None, ge=0)
     data_inicio: date | None = None
     data_fim: date | None = None

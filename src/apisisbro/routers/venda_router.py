@@ -7,6 +7,7 @@ from apisisbro.core.auth import get_curren_user
 from apisisbro.core.dependecies import VendaServiceDep
 from apisisbro.models.models import User
 from apisisbro.schemas.venda_schema import (
+    FilterVenda,
     ListItemVendaResponse,
     ListVendaResponse,
     VendaCreate,
@@ -19,6 +20,8 @@ Current_User = Annotated[
     Depends(get_curren_user),
 ]
 
+Filter = Annotated[FilterVenda, Depends()]
+
 
 router = APIRouter(
     prefix='/vendas', tags=['venda'], dependencies=[Depends(get_curren_user)]
@@ -30,7 +33,7 @@ async def create_venda(payload: VendaCreate, service: VendaServiceDep):
     return await service.create(payload)
 
 
-@router.get('/', status_code=HTTPStatus.OK, response_model=ListVendaResponse)
+@router.get('/vendas', status_code=HTTPStatus.OK, response_model=ListVendaResponse)
 async def get_all_venda(
     service: VendaServiceDep,
     limit: int = 10,
@@ -47,3 +50,8 @@ async def get_by_id_venda(id: int, service: VendaServiceDep):
 @router.put('/{id}', status_code=HTTPStatus.OK, response_model=VendaResponse)
 async def update_venda(id: int, payload: VendaUpdate, service: VendaServiceDep):
     return await service.update(id, payload)
+
+
+@router.get('/', status_code=HTTPStatus.OK, response_model=ListVendaResponse)
+async def filter_venda(service: VendaServiceDep, filter: Filter):
+    return await service.filter(filter)

@@ -18,10 +18,17 @@ from apisisbro.repository import (
     ClienteRepository,
     ItemVendaRepository,
     ProductionRepository,
+    PvdRepository,
     VendaRepository,
 )
 from apisisbro.schemas.pvd_schema import PontoDeVendaCreate
-from apisisbro.schemas.venda_schema import ItemVendaCreate, VendaCreate, VendaUpdate
+from apisisbro.schemas.venda_schema import (
+    FilterVenda,
+    ItemVendaCreate,
+    TipoVenda,
+    VendaCreate,
+    VendaUpdate,
+)
 from apisisbro.services import VendaService
 
 
@@ -437,18 +444,22 @@ async def test_deve_atualizar_venda_com_sucesso(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    pvd_cliente,
 ):
     repo = VendaRepository(session)
     producao = ProductionRepository(session)
     clienteRepo = ClienteRepository(session)
+    repo_pvd = PvdRepository(session)
     service = VendaService(
         repo=repo,
         repoPoducao=producao,
         repoCliente=clienteRepo,
+        repoPvd=repo_pvd,
     )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
+    pvd = pvd_cliente.build(id_cliente=cliente_salvo.id)
+    pvd_salvo = await repo_pvd.create(pvd)
 
     produto = produto_factory.build(
         criador_id=user.id,
@@ -490,10 +501,16 @@ async def test_deve_atualizar_venda_com_sucesso(
     assert venda_criada.status_pagamento == StatusPagamento.PENDENTE
     assert venda_criada.forma_pagamento is None
 
+    cliente_2 = cliente_cnpj_factory.build()
+    cliente_salvo2 = await clienteRepo.create(cliente_2)
+
     payload_update = VendaUpdate(
         status_pagamento=StatusPagamento.PAGO,
         forma_pagamento=FormaPagamento.PIX,
         data_pagamento=date.today(),
+        cliente_id=cliente_salvo2.id,
+        tipo_venda='VAREJO',
+        pvd_id=pvd_salvo.id,
     )
 
     venda_atualizada = await service.update(venda_criada.id, payload_update)
@@ -599,3 +616,116 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
     assert venda_atualizada.valor_subtotal == Decimal('100.00')
     assert venda_atualizada.valor_desconto == Decimal('20.00')
     assert venda_atualizada.valor_total == Decimal('80.00')
+
+
+@pytest.mark.asyncio
+async def test_deve_listar_com_filter(
+    session: AsyncSession,
+    cliente_cnpj_factory,
+    produto_factory,
+    user,
+    pvd_cliente,
+):
+    repo = VendaRepository(session)
+    producao = ProductionRepository(session)
+    clienteRepo = ClienteRepository(session)
+    pvdRepo = PvdRepository(session)
+    service = VendaService(
+        repo=repo, repoPoducao=producao, repoCliente=clienteRepo, repoPvd=pvdRepo
+    )
+
+    cliente1 = cliente_cnpj_factory.build()
+    cliente2 = cliente_cnpj_factory.build()
+    cliente1_salvo = await clienteRepo.create(cliente1)
+    cliente2_salvo = await clienteRepo.create(cliente2)
+
+    produto1 = produto_factory.build(
+        criador_id=user.id, nome='Carolina Reaper 10', preco_varejo=Decimal('50.00')
+    )
+    produto2 = produto_factory.build(
+        criador_id=user.id, nome='Carolina Reaper 11', preco_varejo=Decimal('60.00')
+    )
+    pvd = pvd_cliente.build(id_cliente=cliente1_salvo.id)
+    pvd2 = pvd_cliente.build(id_cliente=cliente2_salvo.id)
+    pvd_salvo = await pvdRepo.create(pvd)
+    pvd2_salvo = await pvdRepo.create(pvd2)
+
+    session.add(produto1)
+    session.add(produto2)
+    await session.flush()
+
+    lote1 = Producao(
+        codigo_lote='LOT-REAPER-10',
+        produto_id=produto1.id,
+        criado_por_id=user.id,
+        validade=date.today() + timedelta(days=180),
+        quantidade=10,
+    )
+    lote2 = Producao(
+        codigo_lote='LOT-REAPER-11',
+        produto_id=produto2.id,
+        criado_por_id=user.id,
+        validade=date.today() + timedelta(days=180),
+        quantidade=10,
+    )
+    session.add(lote1)
+    session.add(lote2)
+    await session.flush()
+
+    payload_create1 = VendaCreate(
+        cliente_id=cliente1_salvo.id,
+        pvd_id=pvd_salvo.id,
+        tipo_venda=TipoVenda.ATACADO,
+        forma_pagamento=FormaPagamento.PIX,
+        status_pagamento=StatusPagamento.PAGO,
+        desconto=Decimal('0.00'),
+        data_venda=date.today(),
+        itens=[
+            ItemVendaCreate(
+                produto_id=produto1.id,
+                quantidade=1,
+            ),
+            ItemVendaCreate(
+                produto_id=produto2.id,
+                quantidade=1,
+            ),
+        ],
+    )
+
+    payload_create2 = VendaCreate(
+        cliente_id=cliente2_salvo.id,
+        pvd_id=pvd2_salvo.id,
+        tipo_venda=TipoVenda.ATACADO,
+        forma_pagamento=FormaPagamento.PIX,
+        status_pagamento=StatusPagamento.PAGO,
+        desconto=Decimal('0.00'),
+        data_venda=date.today(),
+        itens=[
+            ItemVendaCreate(
+                produto_id=produto1.id,
+                quantidade=1,
+            ),
+            ItemVendaCreate(
+                produto_id=produto2.id,
+                quantidade=1,
+            ),
+        ],
+    )
+
+    await service.create(payload_create1)
+    await service.create(payload_create2)
+    await session.commit()
+
+    payload_filter = FilterVenda(
+        data_inicio=date.today(),
+        data_fim=date.today(),
+        status_pagamento=StatusPagamento.PAGO,
+        pvd_id=None,
+        cliente_id=None,
+        forma_pagamento=FormaPagamento.PIX,
+        tipo_venda=TipoVenda.ATACADO,
+    )
+
+    vendas_filtradas = await service.filtro_vendas(payload_filter)
+    number = 2
+    assert len(vendas_filtradas['itens']) == number
