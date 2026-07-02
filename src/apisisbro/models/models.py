@@ -32,7 +32,7 @@ class StatusLote(StrEnum):
     ATIVO = 'ATIVO'
     ESGOTADO = 'ESGOTADO'
     VENCIDO = 'VENCIDO'
-    CANCELADO = 'CANCELADOre'
+    CANCELADO = 'CANCELADO'
 
 
 class StatusClientePvd(StrEnum):
