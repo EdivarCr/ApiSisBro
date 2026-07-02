@@ -24,6 +24,13 @@ from apisisbro.models.models import (
     User,
     table_registry,
 )
+from apisisbro.repository import (
+    ClienteRepository,
+    ProductionRepository,
+    PvdRepository,
+    VendaRepository,
+)
+from apisisbro.services import VendaService
 
 fake = Faker()
 
@@ -209,3 +216,25 @@ def produto_factory():
 @pytest.fixture
 def pvd_cliente():
     return PvdFactory
+
+
+@pytest.fixture
+def clienteRepo(session):
+    return ClienteRepository(session)
+
+
+@pytest.fixture
+def pvdRepo(session):
+    return PvdRepository(session)
+
+
+@pytest.fixture
+def service(session, clienteRepo, pvdRepo):
+    repo = VendaRepository(session)
+    producao = ProductionRepository(session)
+    return VendaService(
+        repo=repo,
+        repoPoducao=producao,
+        repoCliente=clienteRepo,
+        repoPvd=pvdRepo,
+    )

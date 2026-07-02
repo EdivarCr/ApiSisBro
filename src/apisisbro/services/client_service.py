@@ -63,7 +63,7 @@ class ClientService:
         return {
             'costumers': existing if existing else [],
             'limit': limit,
-            'offset': offset
+            'offset': offset,
         }
         if not existing:
             raise HTTPException(
