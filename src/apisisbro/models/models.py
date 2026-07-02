@@ -403,10 +403,18 @@ class Venda:
 
     # 3. Relacionamentos (Sempre com init=False para saírem do construtor da Dataclass):
     itens: Mapped[list['ItemVenda']] = relationship(
-        'ItemVenda', back_populates='venda', cascade='all, delete-orphan', init=False
+        'ItemVenda',
+        back_populates='venda',
+        cascade='all, delete-orphan',
+        init=False,
+        repr=False,
     )
-    cliente: Mapped['Cliente'] = relationship(back_populates='vendas', init=False)
-    pvd: Mapped['PontoDeVenda'] = relationship(back_populates='vendas', init=False)
+    cliente: Mapped['Cliente'] = relationship(
+        back_populates='vendas', init=False, repr=False
+    )
+    pvd: Mapped['PontoDeVenda'] = relationship(
+        back_populates='vendas', init=False, repr=False
+    )
 
 
 @table_registry.mapped_as_dataclass
@@ -430,7 +438,9 @@ class ItemVenda:
     )
 
     # 3. Relacionamentos (Sempre com init=False por último):
-    venda: Mapped['Venda'] = relationship('Venda', back_populates='itens', init=False)
+    venda: Mapped['Venda'] = relationship(
+        'Venda', back_populates='itens', init=False, repr=False
+    )
     produto: Mapped['Produto'] = relationship(
-        'Produto', back_populates='itens_venda', init=False
+        'Produto', back_populates='itens_venda', init=False, repr=False
     )

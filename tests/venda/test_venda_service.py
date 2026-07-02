@@ -506,6 +506,7 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
         criador_id=user.id,
         nome='Carolina Reaper 9',
         preco_varejo=Decimal('50.00'),
+        preco_atacado=Decimal('40.00'),
     )
     session.add(produto)
     await session.flush()
@@ -547,14 +548,15 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
     payload_update = VendaUpdate(
         desconto=Decimal('20.00'),
         tipo_conta_destino=TipoContaDestino.INTER,
+        tipo_venda='ATACADO',
     )
 
     venda_atualizada = await service.update(venda_criada.id, payload_update)
     await session.commit()
 
-    assert venda_atualizada.valor_subtotal == Decimal('100.00')
+    assert venda_atualizada.valor_subtotal == Decimal('80.00')
     assert venda_atualizada.valor_desconto == Decimal('20.00')
-    assert venda_atualizada.valor_total == Decimal('80.00')
+    assert venda_atualizada.valor_total == Decimal('60.00')
     assert venda_atualizada.tipo_conta_destino == TipoContaDestino.INTER
 
 
