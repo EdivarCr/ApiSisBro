@@ -109,6 +109,7 @@ class VendaService:
             tipo_venda=payload.tipo_venda,
             forma_pagamento=payload.forma_pagamento,
             status_pagamento=payload.status_pagamento,
+            tipo_conta_destino=payload.tipo_conta_destino,
             valor_subtotal=valor_subtotal,
             valor_desconto=valor_desconto,
             valor_total=valor_total_calculado,
@@ -121,7 +122,7 @@ class VendaService:
         cliente.total_compras += venda_salva.valor_total
         cliente.quantidade_compras += 1
         cliente.ultima_compra = venda_salva.data_venda
-        
+
         await self.repo_cliente.update(cliente)
 
         return await self.get_by_id(venda_salva.id)
@@ -182,13 +183,17 @@ class VendaService:
 
     async def filtro_vendas(self, filter: FilterVenda) -> dict:
         filter_dict = filter.model_dump(
-            exclude={"limit", "offset", "data_inicio", "data_fim"},
-            exclude_none=True
+            exclude={'limit', 'offset', 'data_inicio', 'data_fim'}, exclude_none=True
         )
         result = await self.repo.get_all_by_filter(
             filters=filter_dict,
-            like_fields={'status_pagamento', 'forma_pagamento',
-            'tipo_venda', 'cliente_id', 'pvd_id'},
+            like_fields={
+                'status_pagamento',
+                'forma_pagamento',
+                'tipo_venda',
+                'cliente_id',
+                'pvd_id',
+            },
             limit=filter.limit,
             offset=filter.offset,
             data_inicio=filter.data_inicio,

@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from apisisbro.models.models import (
     FormaPagamento,
     StatusPagamento,
+    TipoContaDestino,
     TipoVenda,
     UnidadeMedida,
 )
@@ -27,6 +28,7 @@ class VendaCreate(BaseModel):
     data_venda: date
     data_pagamento: date | None = None
     itens: list[ItemVendaCreate] = Field(..., min_length=1)
+    tipo_conta_destino: TipoContaDestino
 
 
 class ItemVendaResponse(BaseModel):
@@ -37,6 +39,7 @@ class ItemVendaResponse(BaseModel):
     subtotal: Decimal
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class VendaResponse(BaseModel):
     id: int
@@ -50,6 +53,7 @@ class VendaResponse(BaseModel):
     valor_desconto: Decimal = Field(default=Decimal('0.00'), ge=0)
     data_venda: date
     data_pagamento: date | None = None
+    tipo_conta_destino: TipoContaDestino
 
     itens: list[ItemVendaResponse] = []
 
@@ -74,6 +78,7 @@ class VendaUpdate(BaseModel):
     cliente_id: int | None = None
     pvd_id: int | None = None
     tipo_venda: TipoVenda | None = None
+    tipo_conta_destino: TipoContaDestino | None = None
 
 
 class ItemVendaUpdate(BaseModel):
@@ -95,3 +100,4 @@ class FilterVenda(FilterPage):
     cliente_id: int | None = None
     forma_pagamento: FormaPagamento | None = None
     tipo_venda: TipoVenda | None = None
+    tipo_conta_destino: TipoContaDestino | None = None

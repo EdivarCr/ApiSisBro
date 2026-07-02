@@ -70,6 +70,12 @@ class TipoZona(StrEnum):
     ZONA_OESTE = 'ZONA_OESTE'
 
 
+class TipoContaDestino(StrEnum):
+    INTER = 'INTER'
+    MAQUINHINHA_TON = 'MAQUININHA_TON'
+    DINHEIRO = 'DINHEIRO'
+
+
 @table_registry.mapped_as_dataclass
 class User:
     __tablename__ = 'users'
@@ -380,6 +386,9 @@ class Venda:
         ForeignKey('ponto_de_venda.id'), nullable=True, default=None
     )
     tipo_venda: Mapped[TipoVenda] = mapped_column(String(20), default=TipoVenda.ATACADO)
+    tipo_conta_destino: Mapped[TipoContaDestino] = mapped_column(
+        String(20), default=TipoContaDestino.MAQUINHINHA_TON
+    )
     valor_total: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=Decimal('0.00'))
     valor_subtotal: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), default=Decimal('0.00')
