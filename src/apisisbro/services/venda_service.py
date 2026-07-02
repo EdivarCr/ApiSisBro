@@ -109,6 +109,7 @@ class VendaService:
             tipo_venda=payload.tipo_venda,
             forma_pagamento=payload.forma_pagamento,
             status_pagamento=payload.status_pagamento,
+            tipo_conta_destino=payload.tipo_conta_destino,
             valor_subtotal=valor_subtotal,
             valor_desconto=valor_desconto,
             valor_total=valor_total_calculado,
@@ -121,7 +122,7 @@ class VendaService:
         cliente.total_compras += venda_salva.valor_total
         cliente.quantidade_compras += 1
         cliente.ultima_compra = venda_salva.data_venda
-        
+
         await self.repo_cliente.update(cliente)
 
         return await self.get_by_id(venda_salva.id)
@@ -164,6 +165,8 @@ class VendaService:
 
         update_data = payload.model_dump(exclude_unset=True)
 
+        tipo_venda_modificado = 'tipo_venda' in update_data
+
         if 'desconto' in update_data:
             desconto_percentual = update_data.pop('desconto')
             if desconto_percentual is not None:
@@ -178,17 +181,26 @@ class VendaService:
         for field, value in update_data.items():
             setattr(venda, field, value)
 
-        return await self.repo.update(venda)
+        venda_atualizada = await self.repo.update(venda)
+
+        if tipo_venda_modificado:
+            return await self.recalcular_venda(venda_atualizada.id)
+
+        return venda_atualizada
 
     async def filtro_vendas(self, filter: FilterVenda) -> dict:
         filter_dict = filter.model_dump(
-            exclude={"limit", "offset", "data_inicio", "data_fim"},
-            exclude_none=True
+            exclude={'limit', 'offset', 'data_inicio', 'data_fim'}, exclude_none=True
         )
         result = await self.repo.get_all_by_filter(
             filters=filter_dict,
-            like_fields={'status_pagamento', 'forma_pagamento',
-            'tipo_venda', 'cliente_id', 'pvd_id'},
+            like_fields={
+                'status_pagamento',
+                'forma_pagamento',
+                'tipo_venda',
+                'cliente_id',
+                'pvd_id',
+            },
             limit=filter.limit,
             offset=filter.offset,
             data_inicio=filter.data_inicio,
@@ -196,3 +208,30 @@ class VendaService:
         )
 
         return {'itens': result, 'limit': filter.limit, 'offset': filter.offset}
+
+    async def recalcular_venda(self, venda_id: int) -> Venda:
+        venda = await self.repo.get_venda_with_items_and_products(venda_id)
+        if not venda:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='Venda nao encontrada'
+            )
+
+        valor_subtotal = Decimal('0.00')
+
+        for item in venda.itens:
+            produto = item.produto
+            if venda.tipo_venda == 'ATACADO':
+                preco_unitario = produto.preco_atacado
+            else:
+                preco_unitario = produto.preco_varejo
+
+            item.preco_unitario = preco_unitario
+            item.subtotal = item.quantidade * preco_unitario
+            valor_subtotal += item.subtotal
+
+        venda.valor_subtotal = valor_subtotal
+        venda.valor_total = (valor_subtotal - venda.valor_desconto).quantize(
+            Decimal('0.01')
+        )
+
+        return await self.repo.update(venda)

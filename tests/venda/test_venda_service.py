@@ -11,17 +11,9 @@ from apisisbro.models.models import (
     ItemVenda,
     Producao,
     StatusPagamento,
-    TipoZona,
+    TipoContaDestino,
     Venda,
 )
-from apisisbro.repository import (
-    ClienteRepository,
-    ItemVendaRepository,
-    ProductionRepository,
-    PvdRepository,
-    VendaRepository,
-)
-from apisisbro.schemas.pvd_schema import PontoDeVendaCreate
 from apisisbro.schemas.venda_schema import (
     FilterVenda,
     ItemVendaCreate,
@@ -38,16 +30,9 @@ async def test_deve_criar_venda_com_sucesso(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ) -> Venda:
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
 
     cliente_salvo = await clienteRepo.create(cliente)
@@ -90,6 +75,7 @@ async def test_deve_criar_venda_com_sucesso(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         valor_total=Decimal('98.00'),
         data_venda=date.today(),
         data_pagamento=date.today(),
@@ -130,16 +116,9 @@ async def test_deve_buscar_todas_as_vendas_com_sucesso(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
 
@@ -167,6 +146,7 @@ async def test_deve_buscar_todas_as_vendas_com_sucesso(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         valor_total=Decimal('35.00'),
         data_venda=date.today(),
         data_pagamento=date.today(),
@@ -197,17 +177,9 @@ async def test_deve_criar_venda_com_desconto_em_porcentagem(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ):
-
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
 
@@ -235,6 +207,7 @@ async def test_deve_criar_venda_com_desconto_em_porcentagem(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('10.00'),  # 10% discount
         data_venda=date.today(),
         itens=[
@@ -260,16 +233,9 @@ async def test_deve_devolver_404_ao_buscar_venda_inexistente(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
 
@@ -297,6 +263,7 @@ async def test_deve_devolver_404_ao_buscar_venda_inexistente(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('10.00'),  # 10% discount
         data_venda=date.today(),
         itens=[
@@ -328,16 +295,9 @@ async def test_deve_retornar_400_quando_produto_nao_tem_estoque_suficiente(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
 
@@ -365,6 +325,7 @@ async def test_deve_retornar_400_quando_produto_nao_tem_estoque_suficiente(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('10.00'),
         data_venda=date.today(),
         itens=[
@@ -391,16 +352,9 @@ async def test_deve_retornar_400_quando_produto_nao_tem_lote_cadastrado(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
 
@@ -418,6 +372,7 @@ async def test_deve_retornar_400_quando_produto_nao_tem_lote_cadastrado(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('10.00'),
         data_venda=date.today(),
         itens=[
@@ -445,21 +400,14 @@ async def test_deve_atualizar_venda_com_sucesso(
     produto_factory,
     user,
     pvd_cliente,
+    clienteRepo,
+    pvdRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    repo_pvd = PvdRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-        repoPvd=repo_pvd,
-    )
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
     pvd = pvd_cliente.build(id_cliente=cliente_salvo.id)
-    pvd_salvo = await repo_pvd.create(pvd)
+    pvd_salvo = await pvdRepo.create(pvd)
 
     produto = produto_factory.build(
         criador_id=user.id,
@@ -485,6 +433,7 @@ async def test_deve_atualizar_venda_com_sucesso(
         tipo_venda='VAREJO',
         forma_pagamento=None,
         status_pagamento=StatusPagamento.PENDENTE,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('0.00'),
         data_venda=date.today(),
         itens=[
@@ -511,6 +460,7 @@ async def test_deve_atualizar_venda_com_sucesso(
         cliente_id=cliente_salvo2.id,
         tipo_venda='VAREJO',
         pvd_id=pvd_salvo.id,
+        tipo_conta_destino=TipoContaDestino.INTER,
     )
 
     venda_atualizada = await service.update(venda_criada.id, payload_update)
@@ -519,24 +469,18 @@ async def test_deve_atualizar_venda_com_sucesso(
     assert venda_atualizada.status_pagamento == StatusPagamento.PAGO
     assert venda_atualizada.forma_pagamento == FormaPagamento.PIX
     assert venda_atualizada.data_pagamento == date.today()
+    assert venda_atualizada.tipo_conta_destino == TipoContaDestino.INTER
 
 
 @pytest.mark.asyncio
 async def test_deve_retornar_404_ao_atualizar_venda_inexistente(
     session: AsyncSession,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     payload_update = VendaUpdate(
         status_pagamento=StatusPagamento.PAGO,
         forma_pagamento=FormaPagamento.PIX,
+        tipo_conta_destino=TipoContaDestino.INTER,
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -552,16 +496,9 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
     cliente_cnpj_factory,
     produto_factory,
     user,
+    clienteRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    service = VendaService(
-        repo=repo,
-        repoPoducao=producao,
-        repoCliente=clienteRepo,
-    )
-
     cliente = cliente_cnpj_factory.build()
     cliente_salvo = await clienteRepo.create(cliente)
 
@@ -569,6 +506,7 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
         criador_id=user.id,
         nome='Carolina Reaper 9',
         preco_varejo=Decimal('50.00'),
+        preco_atacado=Decimal('40.00'),
     )
     session.add(produto)
     await session.flush()
@@ -589,6 +527,7 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
         tipo_venda='VAREJO',
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('0.00'),
         data_venda=date.today(),
         itens=[
@@ -608,14 +547,17 @@ async def test_deve_atualizar_desconto_da_venda_e_recalcular_valores(
 
     payload_update = VendaUpdate(
         desconto=Decimal('20.00'),
+        tipo_conta_destino=TipoContaDestino.INTER,
+        tipo_venda='ATACADO',
     )
 
     venda_atualizada = await service.update(venda_criada.id, payload_update)
     await session.commit()
 
-    assert venda_atualizada.valor_subtotal == Decimal('100.00')
+    assert venda_atualizada.valor_subtotal == Decimal('80.00')
     assert venda_atualizada.valor_desconto == Decimal('20.00')
-    assert venda_atualizada.valor_total == Decimal('80.00')
+    assert venda_atualizada.valor_total == Decimal('60.00')
+    assert venda_atualizada.tipo_conta_destino == TipoContaDestino.INTER
 
 
 @pytest.mark.asyncio
@@ -625,15 +567,10 @@ async def test_deve_listar_com_filter(
     produto_factory,
     user,
     pvd_cliente,
+    clienteRepo,
+    pvdRepo,
+    service,
 ):
-    repo = VendaRepository(session)
-    producao = ProductionRepository(session)
-    clienteRepo = ClienteRepository(session)
-    pvdRepo = PvdRepository(session)
-    service = VendaService(
-        repo=repo, repoPoducao=producao, repoCliente=clienteRepo, repoPvd=pvdRepo
-    )
-
     cliente1 = cliente_cnpj_factory.build()
     cliente2 = cliente_cnpj_factory.build()
     cliente1_salvo = await clienteRepo.create(cliente1)
@@ -678,6 +615,7 @@ async def test_deve_listar_com_filter(
         tipo_venda=TipoVenda.ATACADO,
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('0.00'),
         data_venda=date.today(),
         itens=[
@@ -698,6 +636,7 @@ async def test_deve_listar_com_filter(
         tipo_venda=TipoVenda.ATACADO,
         forma_pagamento=FormaPagamento.PIX,
         status_pagamento=StatusPagamento.PAGO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
         desconto=Decimal('0.00'),
         data_venda=date.today(),
         itens=[
@@ -724,6 +663,7 @@ async def test_deve_listar_com_filter(
         cliente_id=None,
         forma_pagamento=FormaPagamento.PIX,
         tipo_venda=TipoVenda.ATACADO,
+        tipo_conta_destino=TipoContaDestino.MAQUINHINHA_TON,
     )
 
     vendas_filtradas = await service.filtro_vendas(payload_filter)

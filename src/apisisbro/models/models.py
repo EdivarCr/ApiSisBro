@@ -70,6 +70,12 @@ class TipoZona(StrEnum):
     ZONA_OESTE = 'ZONA_OESTE'
 
 
+class TipoContaDestino(StrEnum):
+    INTER = 'INTER'
+    MAQUINHINHA_TON = 'MAQUININHA_TON'
+    DINHEIRO = 'DINHEIRO'
+
+
 @table_registry.mapped_as_dataclass
 class User:
     __tablename__ = 'users'
@@ -380,6 +386,9 @@ class Venda:
         ForeignKey('ponto_de_venda.id'), nullable=True, default=None
     )
     tipo_venda: Mapped[TipoVenda] = mapped_column(String(20), default=TipoVenda.ATACADO)
+    tipo_conta_destino: Mapped[TipoContaDestino] = mapped_column(
+        String(20), default=TipoContaDestino.MAQUINHINHA_TON
+    )
     valor_total: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=Decimal('0.00'))
     valor_subtotal: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), default=Decimal('0.00')
@@ -394,10 +403,18 @@ class Venda:
 
     # 3. Relacionamentos (Sempre com init=False para saírem do construtor da Dataclass):
     itens: Mapped[list['ItemVenda']] = relationship(
-        'ItemVenda', back_populates='venda', cascade='all, delete-orphan', init=False
+        'ItemVenda',
+        back_populates='venda',
+        cascade='all, delete-orphan',
+        init=False,
+        repr=False,
     )
-    cliente: Mapped['Cliente'] = relationship(back_populates='vendas', init=False)
-    pvd: Mapped['PontoDeVenda'] = relationship(back_populates='vendas', init=False)
+    cliente: Mapped['Cliente'] = relationship(
+        back_populates='vendas', init=False, repr=False
+    )
+    pvd: Mapped['PontoDeVenda'] = relationship(
+        back_populates='vendas', init=False, repr=False
+    )
 
 
 @table_registry.mapped_as_dataclass
@@ -421,7 +438,9 @@ class ItemVenda:
     )
 
     # 3. Relacionamentos (Sempre com init=False por último):
-    venda: Mapped['Venda'] = relationship('Venda', back_populates='itens', init=False)
+    venda: Mapped['Venda'] = relationship(
+        'Venda', back_populates='itens', init=False, repr=False
+    )
     produto: Mapped['Produto'] = relationship(
-        'Produto', back_populates='itens_venda', init=False
+        'Produto', back_populates='itens_venda', init=False, repr=False
     )

@@ -19,9 +19,7 @@ class ClienteRepository(BaseRepository[Cliente]):
 
     async def get_by_id(self, id: int) -> Cliente | None:
         query = (
-            select(Cliente)
-            .where(Cliente.id == id)
-            .options(selectinload(Cliente.vendas))
+            select(Cliente).where(Cliente.id == id).options(selectinload(Cliente.vendas))
         )
         result = await self.session.execute(query)
         return result.scalars().first()

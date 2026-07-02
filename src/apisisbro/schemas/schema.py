@@ -28,7 +28,7 @@ class UserLogin(BaseModel):
     def validation_passwordo(cls, value: str) -> str:
 
         if not re.search(r'[@#$%\^&*.]', value):
-            raise ValueError('Senha deve ter um caractere especial')
+            raise ValueError('usuario nao encontrado no sistema')
 
         return value
 
