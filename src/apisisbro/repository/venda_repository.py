@@ -16,22 +16,15 @@ class VendaRepository(BaseRepository[Venda]):
     @property
     def model(self) -> type[Venda]:
         return Venda
-    
+
     async def get_all(self, limit: int = 10, offset: int = 0) -> Sequence[Venda]:
         query = (
-            select(Venda)
-            .options(selectinload(Venda.itens))
-            .limit(limit)
-            .offset(offset)
+            select(Venda).options(selectinload(Venda.itens)).limit(limit).offset(offset)
         )
         result = await self.session.execute(query)
         return result.scalars().all()
 
     async def get_by_id(self, id: int) -> Venda | None:
-        query = (
-            select(Venda)
-            .where(Venda.id == id)
-            .options(selectinload(Venda.itens))
-        )
+        query = select(Venda).where(Venda.id == id).options(selectinload(Venda.itens))
         result = await self.session.execute(query)
         return result.scalars().first()

@@ -8,9 +8,9 @@ from apisisbro.core.dependecies import ClientServiceDep
 from apisisbro.models.models import User
 from apisisbro.schemas.cliente_schema import (
     ClienteCreate,
+    ClienteDetailResponse,
     ClientePaginationResponse,
     ClienteResponse,
-    ClienteDetailResponse,
     ClienteUpdate,
     FilterClienteResponse,
 )
@@ -40,22 +40,25 @@ async def list_costumer(
 ):
     return await service.get_all(limit, offset)
 
+
 @router.get(
     '/pesquisa', status_code=HTTPStatus.OK, response_model=ClientePaginationResponse
 )
 async def list_costumer_for_filter(service: ClientServiceDep, payload: Filter):
     return await service.get_by_filter(payload)
 
-@router.get('/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteDetailResponse)
+
+@router.get(
+    '/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteDetailResponse
+)
 async def list_costumer_for_id(
     service: ClientServiceDep,
     client_id: int,
 ):
     return await service.get_by_id(client_id)
 
-@router.patch(
-    '/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse
-)
+
+@router.patch('/{client_id}', status_code=HTTPStatus.OK, response_model=ClienteResponse)
 async def update_client(
     service: ClientServiceDep,
     payload: ClienteUpdate,
