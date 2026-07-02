@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apisisbro.core.auth import get_curren_user
@@ -11,11 +11,12 @@ from apisisbro.repository.product_repository import ProductRepository
 from apisisbro.schemas.schema import (
     FilterProduct,
     ProdutoCreate,
-    ProdutoListResponse,
-    ProdutoPublic,
+    ProdutoListResponseAdmin,
+    ProdutoOut,
     ProdutoUpdate,
 )
 from apisisbro.services.product_service import ProductService
+from apisisbro.services.storage_service import StorageService
 
 router = APIRouter(prefix='/produtos', tags=['produtos'])
 
@@ -25,21 +26,37 @@ Filter = Annotated[FilterProduct, Depends()]
 
 
 def get_product_server(session: Session) -> ProductService:
-    return ProductService(ProductRepository(session))
+    return ProductService(ProductRepository(session), StorageService())
 
 
 Product_Service = Annotated[ProductService, Depends(get_product_server)]
 
 
-@router.post('/', status_code=HTTPStatus.CREATED, response_model=ProdutoPublic)
+@router.post('/', status_code=HTTPStatus.CREATED, response_model=ProdutoOut)
 async def create_product(
-    product: ProdutoCreate, service: Product_Service, user: Current_User
+    product: ProdutoCreate,
+    service: Product_Service,
+    user: Current_User,
 ):
     return await service.create(product, user)
 
 
-@router.get('/', status_code=HTTPStatus.OK, response_model=ProdutoListResponse)
-async def list_products(
+@router.post('/imagem_produto', status_code=HTTPStatus.CREATED, response_model=ProdutoOut)
+async def upload_image(
+    service: Product_Service,
+    id_produto: int,
+    user: Current_User,
+    image: Annotated[UploadFile | None, File()] = None,
+):
+    return await service.upload(id_produto, image)
+
+
+@router.get(
+    '/dashboard_admin',
+    status_code=HTTPStatus.OK,
+    response_model=ProdutoListResponseAdmin,
+)
+async def list_products_admin(
     service: Product_Service,
     limit: int = 10,
     offset: int = 0,
@@ -49,15 +66,34 @@ async def list_products(
     return {'products': list(products)}
 
 
-@router.get('/pesquisa', status_code=HTTPStatus.OK, response_model=ProdutoListResponse)
+@router.get(
+    '/pesquisa', status_code=HTTPStatus.OK, response_model=ProdutoListResponseAdmin
+)
 async def search_products(service: Product_Service, filter: Filter):
     products = await service.list_by_filter(filter)
     return {'products': products}
 
 
-@router.patch('/{id}', status_code=HTTPStatus.OK, response_model=ProdutoPublic)
+@router.patch('/{id}', status_code=HTTPStatus.OK, response_model=ProdutoOut)
 async def patch_product(
-    service: Product_Service, id: int, product_patch: ProdutoUpdate,
-    user: Current_User
+    service: Product_Service,
+    id: int,
+    user: Current_User,
+    product_patch: ProdutoUpdate,
 ):
     return await service.update(id, product_patch)
+
+
+@router.patch(
+    '/{produto_id}/update_image',
+    status_code=HTTPStatus.OK,
+    response_model=ProdutoOut,
+)
+async def patch_image(
+    service: Product_Service,
+    produto_id: int,
+    user: Current_User,
+    image: Annotated[UploadFile | None, File()] = None,
+    remove_image: bool = Form(False),
+):
+    return await service.update_image(produto_id, image, remove_image)

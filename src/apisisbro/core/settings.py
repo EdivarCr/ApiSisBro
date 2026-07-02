@@ -1,6 +1,9 @@
 from functools import lru_cache
 
+from pwdlib import PasswordHash
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+pwd_context = PasswordHash.recommended()
 
 
 class Settings(BaseSettings):
@@ -25,9 +28,9 @@ class Settings(BaseSettings):
 
     # Storage
 
-    STORAGE_BUCKET_PRODUTOS: str = 'produtos'
-    STORAGE_BUCKET_COMPROVANTES: str = 'comprovantes'
-    MAX_UPLOAD_SIZE_MB: int = 5
+    STORAGE_BUCKET_PRODUTOS: str
+    STORAGE_BUCKET_COMPROVANTES: str
+    MAX_UPLOAD_SIZE_MB: int = 8
 
     @property
     def max_upload_size_bytes(self) -> int:
@@ -38,6 +41,10 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Verifica se está em produção."""
         return self.APP_ENV == 'production'
+
+    @staticmethod
+    def get_password_hash(password: str):
+        return pwd_context.hash(password)
 
 
 @lru_cache

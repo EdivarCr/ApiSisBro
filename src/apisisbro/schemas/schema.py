@@ -1,12 +1,13 @@
+import re
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from apisisbro.models.models import TipoProduto
 
 
-class User(BaseModel):
+class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
@@ -16,6 +17,37 @@ class UserPublic(BaseModel):
     username: str
     email: EmailStr
     id: int
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, description='a senha dever no min 8 caracteres')
+
+    @field_validator('password')
+    @classmethod
+    def validation_passwordo(cls, value: str) -> str:
+
+        if not re.search(r'[@#$%\^&*.]', value):
+            raise ValueError('Senha deve ter um caractere especial')
+
+        return value
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = 'bearer'
+
+
+class ProdutoInsumoCreate(BaseModel):
+    insumo_id: int
+    quantidade_necessaria: Decimal = Field(gt=0, max_digits=10, decimal_places=3)
+
+
+class ProdutoInsumoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    insumo_id: int
+    quantidade_necessaria: Decimal
 
 
 class ProdutoBase(BaseModel):
@@ -30,48 +62,36 @@ class ProdutoBase(BaseModel):
     alergenicos: str = Field(default='', max_length=255)
     tem_carolina_reaper: bool = Field(default=False)
 
-    imagem_path: str | None = Field(default=None, max_length=255)
-    imagem_bucket: str | None = Field(default=None, max_length=50)
-
     estoque_minimo: int = Field(default=10, ge=0)
     validade_meses: int = Field(default=0, ge=0)
     unidades_por_caixa: int = Field(default=1, ge=1)
 
-    peso_gramas: Decimal = Field(default=None, gt=0, max_digits=10, decimal_places=2)
-
-
-class ProdutoCreate(ProdutoBase):
-    pass
-
-
-class ProdutoUpdate(BaseModel):
-    nome: str | None = Field(default=None, min_length=1, max_length=120)
-    descricao: str | None = Field(default=None, min_length=1, max_length=300)
-    tipo: TipoProduto
-
-    preco_varejo: Decimal | None = Field(
-        default=None, gt=0, max_digits=10, decimal_places=2
-    )
-    preco_atacado: Decimal | None = Field(
-        default=None, gt=0, max_digits=10, decimal_places=2
-    )
-
-    nivel_picancia: int | None = Field(default=None, ge=0, le=10)
-
-    alergenicos: str | None = Field(default=None, max_length=255)
-    tem_carolina_reaper: bool | None = None
-
-    imagem_path: str | None = Field(default=None, max_length=255)
-    imagem_bucket: str | None = Field(default=None, max_length=50)
-
-    estoque_minimo: int | None = Field(default=None, ge=0)
-    validade_meses: int | None = Field(default=None, ge=0)
-    unidades_por_caixa: int | None = Field(default=None, ge=1)
-
     peso_gramas: Decimal | None = Field(
         default=None, gt=0, max_digits=10, decimal_places=2
     )
+
+
+class ProdutoCreate(ProdutoBase):
+    formulas: list[ProdutoInsumoCreate] = Field(min_length=1)
+
+
+class ProdutoUpdate(BaseModel):
+    # 1. Declarar os atributos do modelo como opcionais
+    nome: str | None = Field(default=None, min_length=1, max_length=120)
+    descricao: str | None = Field(default=None, min_length=1, max_length=300)
+    tipo: str | None = None  # Se estiver usando o Enum TipoProduto, coloque aqui
+    preco_varejo: Decimal | None = Field(default=None, gt=0)
+    preco_atacado: Decimal | None = Field(default=None, gt=0)
+    nivel_picancia: int | None = Field(default=None, ge=0, le=10)
+    alergenicos: str | None = Field(default=None, max_length=255)
+    tem_carolina_reaper: bool | None = None
+    estoque_minimo: int | None = Field(default=None, ge=0)
+    validade_meses: int | None = Field(default=None, ge=0)
+    unidades_por_caixa: int | None = Field(default=None, ge=1)
+    peso_gramas: Decimal | None = Field(default=None, gt=0)
     ativo: bool | None = None
+
+    formulas: list[ProdutoInsumoCreate] | None = None
 
 
 class ProdutoPublic(BaseModel):
@@ -94,51 +114,53 @@ class ProdutoPublic(BaseModel):
 
     validade_meses: int
     unidades_por_caixa: int
-    peso_gramas: Decimal
+    peso_gramas: Decimal | None
 
 
-class ProdutoListItem(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    nome: str
-    tipo: TipoProduto
-    preco_varejo: Decimal
-    nivel_picancia: int
-    tem_carolina_reaper: bool
-    imagem_path: str | None
-    url_imagem: str | None = None
-    ativo: bool
-
-
-class ProdutoOut(BaseModel):
+class ProdutoListItemAdmin(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     nome: str
     descricao: str
     tipo: TipoProduto
-
     preco_varejo: Decimal
     preco_atacado: Decimal
-
     nivel_picancia: int
-    scoville_aprox: int | None
-
-    alergenicos: str
     tem_carolina_reaper: bool
-
-    imagem_bucket: str | None
     imagem_path: str | None
-
-    estoque_minimo: int
-    validade_meses: int
-    unidades_por_caixa: int
-    peso_gramas: Decimal | None
-
+    imagem_bucket: str | None = None
+    alergenicos: str | None = None
     ativo: bool
     criado_em: datetime
     atualizado_em: datetime
+    validade_meses: int
+    unidades_por_caixa: int
+    peso_gramas: Decimal | None
+    estoque_minimo: int | None = None
+    formulas: list[ProdutoInsumoResponse] = Field(default_factory=list)
+
+
+class ProdutoListItemPublic(BaseModel):
+    nome: str
+    tipo: TipoProduto
+    preco_varejo: Decimal
+    preco_atacado: Decimal
+    nivel_picancia: int
+    tem_carolina_reaper: bool
+    imagem_url: str | None = None
+
+
+class ProdutoOut(ProdutoBase):
+    id: int
+    imagem_path: str | None = None
+    imagem_bucket: str | None = None
+    imagem_url: str | None = None
+    ativo: bool
+    criado_em: datetime
+    atualizado_em: datetime
+
+    model_config = {'from_attributes': True}
 
 
 class FilterPage(BaseModel):
@@ -154,7 +176,29 @@ class FilterProduct(FilterPage):
     ativo: bool | None = Field(default=None)
 
 
-class ProdutoListResponse(BaseModel):
-    products: list[ProdutoListItem]
+class ProdutoListResponseAdmin(BaseModel):
+    products: list[ProdutoListItemAdmin]
     offset: int = 0
     limit: int = 10
+
+
+class ProdutoListResponsePublic(BaseModel):
+    products: list[ProdutoListItemPublic]
+    offset: int = 0
+    limit: int = 10
+
+
+class UploadedImage(BaseModel):
+    bucket: str
+    path: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    redirect_url: str = 'http://localhost:5173/reset-password'
+
+
+class ResetPasswordRequest(BaseModel):
+    access_token: str
+    refresh_token: str
+    new_password: str

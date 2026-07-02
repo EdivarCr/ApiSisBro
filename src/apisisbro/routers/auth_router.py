@@ -1,18 +1,25 @@
-# importar services de auth
-# fazer rotas de login e logout e callback
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apisisbro.core.auth import get_curren_user
 from apisisbro.core.database import get_session
 from apisisbro.models.models import User
+from apisisbro.schemas.schema import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    Token,
+    UserLogin,
+)
 from apisisbro.services.auth_service import (
     exchange_code_and_get_or_create_user,
     generate_google_login_url,
+    login_email,
+    send_recovery_email,
+    update_password,
 )
 
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -35,9 +42,7 @@ async def callback(code: str, db: Session):
     try:
         _, access_token = await exchange_code_and_get_or_create_user(code, db)
     except ValueError as err:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST, detail=str(err)
-        ) from err
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=str(err)) from err
 
     response = RedirectResponse(url='/auth/me')
     response.set_cookie(
@@ -65,3 +70,36 @@ async def me(user: Current_user):
         'email': user.email,
         'username': user.username,
     }
+
+
+@router.post('/login-by-email', status_code=HTTPStatus.OK, response_model=Token)
+async def login_by_email(user: UserLogin, db: Session, response: Response):
+    try:
+        token_data = await login_email(user, db)
+
+        response.set_cookie(
+            key='access_token',
+            value=token_data['access_token'],
+            httponly=True,
+            secure=False,
+            samesite='lax',
+            max_age=3600,
+        )
+        return token_data
+    except ValueError as err:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail=str(err),
+        ) from err
+
+
+@router.post('/forgot-password', status_code=HTTPStatus.OK)
+def recover_password(request: ForgotPasswordRequest):
+    return send_recovery_email(request.email, request.redirect_url)
+
+
+@router.post('/reset-password')
+def reset_password(request: ResetPasswordRequest):
+    return update_password(
+        request.access_token, request.refresh_token, request.new_password
+    )
