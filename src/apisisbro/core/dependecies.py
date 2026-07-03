@@ -107,9 +107,9 @@ def get_venda_service(
     repo: Annotated[VendaRepository, Depends(get_venda_repository)],
     repoProducao: Annotated[ProductionRepository, Depends(get_production_repository)],
     repoCliente: Annotated[ClienteRepository, Depends(get_client_repository)],
-    repoPVD: Annotated[PvdRepository, Depends(get_pvd_repository)],
+    repoPvd: Annotated[PvdRepository, Depends(get_pvd_repository)],
 ) -> VendaService:
-    return VendaService(repo, repoProducao, repoCliente, repoPVD)
+    return VendaService(repo, repoProducao, repoCliente, repoPvd)
 
 
 VendaServiceDep = Annotated[VendaService, Depends(get_venda_service)]

@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-
+from typing import List
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from apisisbro.models.models import (
@@ -28,7 +28,7 @@ class VendaCreate(BaseModel):
     data_venda: date
     data_pagamento: date | None = None
     itens: list[ItemVendaCreate] = Field(..., min_length=1)
-    tipo_conta_destino: TipoContaDestino
+    tipo_conta_destino: TipoContaDestino | None = None
 
 
 class ItemVendaResponse(BaseModel):
@@ -53,7 +53,7 @@ class VendaResponse(BaseModel):
     valor_desconto: Decimal = Field(default=Decimal('0.00'), ge=0)
     data_venda: date
     data_pagamento: date | None = None
-    tipo_conta_destino: TipoContaDestino
+    tipo_conta_destino: TipoContaDestino | None = None
 
     itens: list[ItemVendaResponse] = []
 
@@ -101,3 +101,40 @@ class FilterVenda(FilterPage):
     forma_pagamento: FormaPagamento | None = None
     tipo_venda: TipoVenda | None = None
     tipo_conta_destino: TipoContaDestino | None = None
+
+# --- PARA O DASHBOARD GERAL ---
+class ProdutoLucroKPI(BaseModel):
+    produto_id: int
+    nome_produto: str
+    quantidade_vendida: int
+    faturamento_total: Decimal
+    custo_total: Decimal
+    lucro_total: Decimal
+    margem_lucro: Decimal
+
+class VendaMensalKPI(BaseModel):
+    mes: str
+    faturamento: Decimal
+    quantidade_vendas: int
+
+class ProporcaoKPI(BaseModel):
+    tipo: str
+    valor: Decimal
+
+class DashboardGeralResponse(BaseModel):
+    total_faturado: Decimal
+    total_recebido: Decimal
+    total_pendente: Decimal
+    quantidade_vendas: int
+    faturamento_por_mes: List[VendaMensalKPI]
+    proporcao_vendas: List[ProporcaoKPI]
+    produtos_mais_vendidos: List[ProdutoLucroKPI]
+
+# --- PARA O DASHBOARD DE LUCRATIVIDADE ---
+class DashboardLucratividadeResponse(BaseModel):
+    faturamento_total: Decimal
+    custo_total: Decimal
+    lucro_liquido_total: Decimal
+    margem_media: Decimal
+    ranking_produtos: List[ProdutoLucroKPI]
+    proporcao_vendas: List[ProporcaoKPI]
