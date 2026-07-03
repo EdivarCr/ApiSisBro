@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from apisisbro.models.models import Venda, ItemVenda, Produto, ProdutoInsumo
+from apisisbro.models.models import ItemVenda, Venda
 from apisisbro.repository.base_repository import BaseRepository
 from apisisbro.schemas.cliente_schema import ClienteCreate
 
@@ -91,3 +92,12 @@ class VendaRepository(BaseRepository[Venda]):
 
         result = await self.session.scalars(query.offset(offset).limit(limit))
         return result.all()
+
+    async def get_venda_with_items_and_products(self, id: int) -> Venda | None:
+        query = (
+            select(Venda)
+            .where(Venda.id == id)
+            .options(selectinload(Venda.itens).selectinload(ItemVenda.produto))
+        )
+        result = await self.session.execute(query)
+        return result.scalars().first()

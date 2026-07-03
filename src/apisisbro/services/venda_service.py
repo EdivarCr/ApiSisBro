@@ -165,6 +165,8 @@ class VendaService:
 
         update_data = payload.model_dump(exclude_unset=True)
 
+        tipo_venda_modificado = 'tipo_venda' in update_data
+
         if 'desconto' in update_data:
             desconto_percentual = update_data.pop('desconto')
             if desconto_percentual is not None:
@@ -179,7 +181,12 @@ class VendaService:
         for field, value in update_data.items():
             setattr(venda, field, value)
 
-        return await self.repo.update(venda)
+        venda_atualizada = await self.repo.update(venda)
+
+        if tipo_venda_modificado:
+            return await self.recalcular_venda(venda_atualizada.id)
+
+        return venda_atualizada
 
     async def filtro_vendas(self, filter: FilterVenda) -> dict:
         filter_dict = filter.model_dump(
@@ -388,3 +395,29 @@ class VendaService:
             "ranking_produtos": ranking_produtos[:10],  # Retorna o Top 10 produtos
             "proporcao_vendas": proporcao_vendas   
         }
+    async def recalcular_venda(self, venda_id: int) -> Venda:
+        venda = await self.repo.get_venda_with_items_and_products(venda_id)
+        if not venda:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='Venda nao encontrada'
+            )
+
+        valor_subtotal = Decimal('0.00')
+
+        for item in venda.itens:
+            produto = item.produto
+            if venda.tipo_venda == 'ATACADO':
+                preco_unitario = produto.preco_atacado
+            else:
+                preco_unitario = produto.preco_varejo
+
+            item.preco_unitario = preco_unitario
+            item.subtotal = item.quantidade * preco_unitario
+            valor_subtotal += item.subtotal
+
+        venda.valor_subtotal = valor_subtotal
+        venda.valor_total = (valor_subtotal - venda.valor_desconto).quantize(
+            Decimal('0.01')
+        )
+
+        return await self.repo.update(venda)
