@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from apisisbro.models.models import Venda
+from apisisbro.models.models import Venda, ItemVenda, Produto, ProdutoInsumo
 from apisisbro.repository.base_repository import BaseRepository
 from apisisbro.schemas.cliente_schema import ClienteCreate
 
@@ -20,13 +20,31 @@ class VendaRepository(BaseRepository[Venda]):
 
     async def get_all(self, limit: int = 10, offset: int = 0) -> Sequence[Venda]:
         query = (
-            select(Venda).options(selectinload(Venda.itens)).limit(limit).offset(offset)
+            select(Venda)
+            .options(
+                selectinload(Venda.itens)
+                .selectinload(ItemVenda.produto)
+                .selectinload(Produto.formulas) # Carrega as fórmulas do produto
+                .selectinload(ProdutoInsumo.insumo)
+            )
+            .limit(limit)
+            .offset(offset)
+            .order_by(Venda.id.desc())
         )
         result = await self.session.execute(query)
         return result.scalars().all()
 
     async def get_by_id(self, id: int) -> Venda | None:
-        query = select(Venda).where(Venda.id == id).options(selectinload(Venda.itens))
+        query = (
+            select(Venda)
+            .where(Venda.id == id)
+            .options(
+                selectinload(Venda.itens)
+                .selectinload(ItemVenda.produto)
+                .selectinload(Produto.formulas) # Carrega as fórmulas do produto
+                .selectinload(ProdutoInsumo.insumo)
+            )
+        )
         result = await self.session.execute(query)
         return result.scalars().first()
     
@@ -42,7 +60,12 @@ class VendaRepository(BaseRepository[Venda]):
         **kwargs,
     ) -> Sequence[Venda]:
         
-        query = select(self.model).options(selectinload(self.model.itens))
+        query = select(self.model).options(
+            selectinload(Venda.itens)
+            .selectinload(ItemVenda.produto)
+            .selectinload(Produto.formulas) # Carrega as fórmulas do produto
+            .selectinload(ProdutoInsumo.insumo)
+        )
         like_fields = like_fields or set()
 
         if data_inicio:

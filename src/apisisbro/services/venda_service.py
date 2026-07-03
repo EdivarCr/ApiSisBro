@@ -13,7 +13,7 @@ from apisisbro.repository import (
     PvdRepository,
     VendaRepository,
 )
-from apisisbro.schemas.venda_schema import FilterVenda, VendaCreate, VendaUpdate
+from apisisbro.schemas.venda_schema import FilterVenda, VendaCreate, VendaUpdate, ProdutoLucroKPI
 
 
 class VendaService:
@@ -201,3 +201,190 @@ class VendaService:
         )
 
         return {'itens': result, 'limit': filter.limit, 'offset': filter.offset}
+
+    async def get_dashboard_geral(self, data_inicio: date | None = None, data_fim: date | None = None) -> dict:
+        """
+        Calcula os totais financeiros (Faturado, Recebido, Pendente) e o histórico mensal
+        para o período selecionado.
+        """
+        vendas = await self.repo.get_all_by_filter(
+            filters={},
+            like_fields=set(),
+            limit=999999,
+            offset=0,
+            data_inicio=data_inicio,
+            data_fim=data_fim
+        )
+        
+        total_faturado = Decimal("0.00")
+        total_recebido = Decimal("0.00")
+        total_pendente = Decimal("0.00")
+        
+        atacado = Decimal("0.00")
+        varejo = Decimal("0.00")
+
+        # Dicionário temporário para agrupar faturamento por mês (Ano-Mês)
+        por_mes = {}
+        produtos_dict = {}
+
+        for v in vendas:
+            # Ignora vendas canceladas nos cálculos de faturamento
+            if v.status_pagamento == 'CANCELADO':
+                continue
+                
+            valor = Decimal(str(v.valor_total))
+            total_faturado += valor
+            
+            if v.status_pagamento == 'PAGO':
+                total_recebido += valor
+            elif v.status_pagamento == 'PENDENTE':
+                total_pendente += valor
+
+            if v.tipo_venda == 'ATACADO':
+                atacado += valor
+            elif v.tipo_venda == 'VAREJO':
+                varejo += valor
+            
+            for item in v.itens:
+                produto = getattr(item, 'produto', None)
+                nome = produto.nome if produto else f"Produto #{item.produto_id}"
+                
+                produtos_dict[nome] = produtos_dict.get(nome, 0) + item.quantidade
+            
+            # Agrupamento mensal para os gráficos
+            mes_chave = v.data_venda.strftime("%Y-%m")
+            if mes_chave not in por_mes:
+                por_mes[mes_chave] = {"faturamento": Decimal("0.00"), "qtd": 0}
+            por_mes[mes_chave]["faturamento"] += valor
+            por_mes[mes_chave]["qtd"] += 1
+
+        # Formata o gráfico mensal para a resposta do endpoint
+        faturamento_por_mes = [
+            {"mes": k, "faturamento": v["faturamento"], "quantidade_vendas": v["qtd"]}
+            for k, v in sorted(por_mes.items())
+        ]
+
+        proporcao_vendas = [
+            {"tipo": "Atacado", "valor": atacado},
+            {"tipo": "Varejo", "valor": varejo}
+        ]
+
+        ranking_produtos = sorted(produtos_dict.items(), key=lambda x: x[1], reverse=True)
+        produtos_mais_vendidos = []
+        for nome, qtd in produtos_dict.items():
+            prod_kpi = ProdutoLucroKPI(
+                produto_id=0,
+                nome_produto=nome,
+                quantidade_vendida=qtd,
+                faturamento_total=Decimal("0.00"),
+                custo_total=Decimal("0.00"), 
+                lucro_total=Decimal("0.00"),
+                margem_lucro=Decimal("0.00")
+            )
+            produtos_mais_vendidos.append(prod_kpi)
+
+        return {
+            "total_faturado": total_faturado,
+            "total_recebido": total_recebido,
+            "total_pendente": total_pendente,
+            "quantidade_vendas": len([v for v in vendas if v.status_pagamento != 'CANCELADO']),
+            "faturamento_por_mes": faturamento_por_mes,
+            "proporcao_vendas": proporcao_vendas,
+            "produtos_mais_vendidos": produtos_mais_vendidos
+        }
+
+    async def get_dashboard_lucratividade(self, data_inicio: date | None = None, data_fim: date | None = None) -> dict:
+        """
+        Cruza as vendas com o preço de custo dos itens para calcular lucro real e margens.
+        """
+        vendas = await self.repo.get_all_by_filter(
+            filters={},
+            like_fields=set(),
+            limit=999999,
+            offset=0,
+            data_inicio=data_inicio,
+            data_fim=data_fim
+        )
+        
+        faturamento_total = Decimal("0.00")
+        custo_total = Decimal("0.00")
+        produtos_dict = {}
+
+        atacado = Decimal("0.00")
+        varejo = Decimal("0.00")
+        for v in vendas:
+            if v.status_pagamento == 'CANCELADO':
+                continue
+            
+            for item in v.itens:
+                produto = item.produto
+                custo_total_produto = Decimal("0.00")
+                
+                if produto and produto.formulas:
+                    for formula in produto.formulas:
+                        custo_insumo = formula.insumo.custo_unitario
+                        quantidade_usada = formula.quantidade_necessaria
+                        custo_total_produto += (custo_insumo * quantidade_usada)
+
+            if v.tipo_venda == 'ATACADO':
+                atacado += Decimal(str(v.valor_total))
+            elif v.tipo_venda == 'VAREJO':
+                varejo += Decimal(str(v.valor_total))
+
+            faturamento_total += Decimal(str(v.valor_total))
+            
+            # Navega pelos itens da venda para calcular o custo baseado no preço de custo do produto
+            for item in v.itens:
+                # Caso a relação traga o objeto do produto preenchido pelo ORM
+                produto = getattr(item, 'produto', None)
+                preco_custo = Decimal(str(custo_total_produto)) if produto else Decimal("0.00")
+                
+                qtd = item.quantidade
+                item_custo_total = preco_custo * qtd
+                custo_total += item_custo_total
+                
+                # Agrupamento por produto para o ranking
+                p_id = item.produto_id
+                if p_id not in produtos_dict:
+                    produtos_dict[p_id] = {
+                        "produto_id": p_id,
+                        "nome_produto": produto.nome if produto else f"Produto #{p_id}",
+                        "quantidade_vendida": 0,
+                        "faturamento_total": Decimal("0.00"),
+                        "custo_total": Decimal("0.00")
+                    }
+                
+                produtos_dict[p_id]["quantidade_vendida"] += qtd
+                produtos_dict[p_id]["faturamento_total"] += Decimal(str(item.subtotal))
+                produtos_dict[p_id]["custo_total"] += item_custo_total
+
+        proporcao_vendas = [
+            {"tipo": "Atacado", "valor": atacado},
+            {"tipo": "Varejo", "valor": varejo}
+        ]
+        # Calcula margens e lucros por produto individualmente
+        ranking_produtos = []
+        for p in produtos_dict.values():
+            lucro = p["faturamento_total"] - p["custo_total"]
+            margem = (lucro / p["faturamento_total"] * 100) if p["faturamento_total"] > 0 else Decimal("0.00")
+            
+            ranking_produtos.append({
+                **p,
+                "lucro_total": lucro,
+                "margem_lucro": round(margem, 2)
+            })
+
+        # Ordena o ranking pelos produtos que geraram mais lucro líquido
+        ranking_produtos.sort(key=lambda x: x["lucro_total"], reverse=True)
+
+        lucro_liquido_total = faturamento_total - custo_total
+        margem_media = (lucro_liquido_total / faturamento_total * 100) if faturamento_total > 0 else Decimal("0.00")
+
+        return {
+            "faturamento_total": faturamento_total,
+            "custo_total": custo_total,
+            "lucro_liquido_total": lucro_liquido_total,
+            "margem_media": round(margem_media, 2),
+            "ranking_produtos": ranking_produtos[:10],  # Retorna o Top 10 produtos
+            "proporcao_vendas": proporcao_vendas   
+        }
