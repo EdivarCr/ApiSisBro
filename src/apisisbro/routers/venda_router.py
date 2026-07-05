@@ -54,4 +54,4 @@ async def update_venda(id: int, payload: VendaUpdate, service: VendaServiceDep):
 
 @router.get('/', status_code=HTTPStatus.OK, response_model=ListVendaResponse)
 async def filter_venda(service: VendaServiceDep, filter: Filter):
-    return await service.filter(filter)
+    return await service.filtro_vendas(filter)
