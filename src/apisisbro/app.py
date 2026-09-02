@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from apisisbro.routers import (
     auth_router,
     client_router,
+    dashboards_router,
     entrada_insumo_router,
     insumo_router,
     product_router,
@@ -14,7 +15,6 @@ from apisisbro.routers import (
     pvd_router,
     user_router,
     venda_router,
-    dashboards_router
 )
 
 if sys.platform == 'win32':
@@ -28,7 +28,9 @@ app.add_middleware(
     allow_origins=[
         'http://localhost:5173',  # Acesso do front
         'http://127.0.0.1:5500',  # Live Server (Formato IP)
-        'http://localhost:5500',  # Live Server (Formato Localhost)
+        'http://localhost:5500',  # Live Server (Formato Localhost)\
+        'https://front-sigbro.vercel.app',
+        'https://catalogo-brobro.vercel.app'
     ],
     allow_credentials=True,
     allow_methods=['*'],
