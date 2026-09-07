@@ -67,11 +67,20 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     """In this scenario we need to create an Engine
     and associate a connection with the context.
-
     """
+    # 1. Pega as configurações base do alembic.ini
+    ini_section = config.get_section(config.config_ini_section, {})
+
+    # 2. Força a adição do asyncpg caso o Render/Neon entreguem a URL sem ele
+    db_url = settings.DATABASE_URL
+    if db_url and db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    # 3. Injeta a URL correta no dicionário que o motor assíncrono vai usar
+    ini_section["sqlalchemy.url"] = db_url
 
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        ini_section,  # Passa o dicionário modificado aqui
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
