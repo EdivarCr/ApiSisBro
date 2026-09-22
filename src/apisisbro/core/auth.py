@@ -49,9 +49,14 @@ async def get_curren_user(
     user = await db.scalar(select(User).where(User.email == email))
 
     if not user:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Usuário não encontrado no sistema',
+        user = User(
+            username=email.split('@')[0],
+            email=email,
+            password=None,
+            supabase_id=response.user.id,
         )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
 
     return user
